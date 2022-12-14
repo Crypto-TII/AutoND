@@ -118,6 +118,7 @@ def train_neural_distinguisher(starting_round, data_generator):
 
         # abort further training if the validation accuracy is too low
         if val_acc <= ABORT_TRAINING_BELOW_ACC:
+            logging.info(f"ABORT TRAINING (best validation accuracy {val_acc}<={ABORT_TRAINING_BELOW_ACC}).")
             break
         # otherwise save results as currently best reached round
         else:
