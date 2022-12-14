@@ -12,7 +12,7 @@ Please run the code by executing
 ```bash
 python main.py
 ```
-The output should similar to the following (for SPECK32/64): 
+The output should be similar to the following (for SPECK32/64): 
 ```bash
 INFO:root:CREATE NEURAL NETWORK MODEL.
 INFO:root:determined cipher input size = 64
