@@ -1,4 +1,4 @@
-#AutoND: A Cipher-Agnostic Neural Training Pipeline  with Automated Finding of Good Input Differences
+# AutoND: A Cipher-Agnostic Neural Training Pipeline  with Automated Finding of Good Input Differences
 
 _(This work has been submitted and is currently under review. Please keep this code confidential.)_
 
@@ -12,7 +12,7 @@ Please run the code by executing
 ```bash
 python main.py
 ```
-The output should look as follows: 
+The output should similar to the following (for SPECK32/64): 
 ```bash
 INFO:root:CREATE NEURAL NETWORK MODEL.
 INFO:root:determined cipher input size = 64
