@@ -1,16 +1,16 @@
 import numpy as np
 
-plain_bits = 32
-key_bits = 64
+plain_bits = 64
+key_bits = 128
 
 def WORD_SIZE():
-    return(16);
+    return(32);
 
 def ALPHA():
-    return(7);
+    return(8);
 
 def BETA():
-    return(2);
+    return(3);
 
 MASK_VAL = 2 ** WORD_SIZE() - 1;
 
@@ -62,20 +62,6 @@ def encrypt(p, k, r):
     return convert_to_binary([x, y]);
 
 
-
-
-def check_testvector():
-  key = (0x1918,0x1110,0x0908,0x0100)
-  pt = (0x6574, 0x694c)
-  ks = expand_key(key, 22)
-  ct = encrypt(pt, ks)
-  if (ct == (0xa868, 0x42f2)):
-    print("Testvector verified.")
-    return(True);
-  else:
-    print("Testvector not verified.")
-    return(False);
-
 #convert_to_binary takes as input an array of ciphertext pairs
 #where the first row of the array contains the lefthand side of the ciphertexts,
 #the second row contains the righthand side of the ciphertexts,
@@ -91,7 +77,6 @@ def convert_to_binary(arr):
   X = X.transpose();
   return(X);
 
-
 def convert_from_binary(arr):
   num_words = arr.shape[1]//WORD_SIZE()
   X = np.zeros((len(arr), num_words),dtype=np.uint32);
@@ -100,13 +85,6 @@ def convert_from_binary(arr):
         pos = WORD_SIZE()*i+j
         X[:, i] += 2**(WORD_SIZE()-1-j)*arr[:, pos]
   return(X);
-#def convert_from_binary(arr):
-#    n = len(arr)
-#    num_bits = arr.shape[1]
-#    packed = np.packbits(arr,  axis = 1)
-#    dtype = np.uint16
-#    packed.dtype = dtype
-#    return packed
 #def convert_from_binary(arr):
 #    n = len(arr)
 #    num_bits = arr.shape[1]

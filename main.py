@@ -1,12 +1,16 @@
 from os import urandom
 
 import optimizer
-import train_nets
+#import train_nets
 import speck3264 as cipher
+#import speck64128 as cipher
+#import speck128256 as cipher
 
 plain_bits = cipher.plain_bits
 key_bits = cipher.key_bits
 encryption_function = cipher.encrypt
+scenario = "single-key"
+#scenario = "related-key"
 
 def make_train_data(n, nr, delta_state=0, delta_key=0):
     """TEMPORARY VERSION."""
@@ -26,19 +30,14 @@ def make_train_data(n, nr, delta_state=0, delta_key=0):
     return C, Y
 
 if __name__ == "__main__":
-    """TEMPORARY VERSION WITHOUT OPTIMIZER."""
-
-    # TODO: uncomment the following lines:
     ## Find good input differences for SPECK
-    #best_differences, highest_round = optimizer.optimize(plain_bits, key_bits, encryption_function) # + other parameters
-    #delta_state, delta_key = best_differences[-1] # Getting the best input difference
-
-    # TODO: remove the following lines
-    import numpy as np
-    delta_state = np.zeros(32, dtype=np.uint8).reshape(-1, 32)
-    delta_state[:, 9] = 1
-    delta_key = 0
-    highest_round = 6
+    best_differences, highest_round = optimizer.optimize(plain_bits, key_bits, encryption_function, scenario = scenario)
+    best_difference = best_differences[-1]
+    if scenario == "related-key":
+        delta_key = best_difference[plain_bits:]
+    else:
+        delta_key = 0
+    delta_plain = best_difference[:plain_bits]
 
     # Training the neural distinguisher, starting from 1 round before the last biased round detected by the optimizer
     best_round, best_val_acc = train_nets.train_neural_distinguisher(starting_round = max(1, highest_round-1),
