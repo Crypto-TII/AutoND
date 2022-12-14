@@ -1,20 +1,29 @@
+# ------------------------------------------------
+# TensorFlow import
+# ------------------------------------------------
 # TensorFlow setting: Which GPU to use and not to consume the whole GPU:
 import os
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'            # Which GPU to use.
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'            # Filters TensorFlow warnings.
 os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'    # Prevents TensorFlow from consuming the whole GPU.
+# Import TensorFlow:
+import tensorflow as tf
+physical_devices = tf.config.list_physical_devices('GPU')
+tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
+# ------------------------------------------------
+# Other imports
+# ------------------------------------------------
 import logging
 import pandas as pd
 import numpy as np
-import tensorflow as tf
 from dbitnet import make_model
 
-physical_devices = tf.config.list_physical_devices('GPU')
-tf.config.experimental.set_memory_growth(physical_devices[0], True)
+# ------------------------------------------------
+# Configuration and constants
+# ------------------------------------------------
 logging.basicConfig(level=logging.INFO)
 
-# CONSTANTS:
 ABORT_TRAINING_BELOW_ACC = 0.5050   # if the validation accuracy reaches or falls below this limit, abort further training.
 EPOCHS = 40                         # train for 40 epochs
 NUM_SAMPLES = 10**7                 # create 10 million training samples
@@ -36,7 +45,7 @@ def train_one_round(model,
     :return: best validation accuracy
     """
     #------------------------------------------------
-    # handle model weight checkpoints
+    # Handle model weight checkpoints
     #------------------------------------------------
     from keras.callbacks import ModelCheckpoint
 
@@ -48,7 +57,7 @@ def train_one_round(model,
     checkpoint = ModelCheckpoint(f'results/model_round{round_number}.h5', monitor='val_loss', save_best_only = True)
 
     #------------------------------------------------
-    # train the model
+    # Train the model
     #------------------------------------------------
     history = model.fit(X, Y, epochs=epochs, batch_size=BATCHSIZE,
                         validation_data=(X_val, Y_val), callbacks=[checkpoint],
@@ -69,7 +78,7 @@ def train_neural_distinguisher(starting_round, data_generator):
     """
 
     #------------------------------------------------
-    # create the neural network model
+    # Create the neural network model
     #------------------------------------------------
     logging.info("CREATE NEURAL NETWORK MODEL.")
     _X, _Y = data_generator(10, starting_round)  # create a single datapoint to determine the input size
@@ -80,7 +89,7 @@ def train_neural_distinguisher(starting_round, data_generator):
     logging.info(f"determined cipher input size = {input_size}")
 
     #------------------------------------------------
-    # start staged training from starting_round
+    # Start staged training from starting_round
     #------------------------------------------------
     current_round = starting_round
     load_weight_file = False
@@ -88,7 +97,9 @@ def train_neural_distinguisher(starting_round, data_generator):
     best_round = None
 
     while True:
-
+        # ------------------------------------------------
+        # Train one round
+        # ------------------------------------------------
         # create data
         logging.info(f"CREATE DATA for round {current_round}...")
         X, Y = data_generator(NUM_SAMPLES, current_round)
