@@ -7,7 +7,7 @@ def get_dilation_rates(input_size):
 
     return drs
 
-def make_model(input_size=64):
+def make_model(input_size=64, n_filters=32, n_add_filters=16):
     """Create a DBITNet model.
 
     :param input_size: e.g. for SPECK32/64 the input_size is 64 bit.
