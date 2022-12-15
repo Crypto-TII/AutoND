@@ -47,7 +47,7 @@ def train_one_round(model,
     #------------------------------------------------
     # Handle model weight checkpoints
     #------------------------------------------------
-    from keras.callbacks import ModelCheckpoint
+    from tensorflow.keras.callbacks import ModelCheckpoint
 
     # load weight checkpoint from previous round?
     if load_weight_file:
@@ -84,7 +84,7 @@ def train_neural_distinguisher(starting_round, data_generator):
     _X, _Y = data_generator(10, starting_round)  # create a small number of datapoints to determine the input size
     input_size = _X.shape[1]                     # determine the input_size from the single datapoint
     model = make_model(input_size)
-    optimizer = tf.optimizers.Adam(amsgrad=True)
+    optimizer = tf.keras.optimizers.Adam(amsgrad=True)
     model.compile(optimizer=optimizer, loss='mse', metrics=['acc'])
     logging.info(f"determined cipher input size = {input_size}")
 
