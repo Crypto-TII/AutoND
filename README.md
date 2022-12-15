@@ -110,7 +110,7 @@ Please create a `mycipher.py` Python file with the structure as shown in e.g. `s
 import mycipher as cipher
 ```
 
-## Prerequisites 
+## Prerequisites
 The code execution relies on standard Python modules, except for `tensorflow`.
 If you start from an empty Python Anaconda environment, the following installation should be sufficient: 
 ```bash
@@ -119,4 +119,4 @@ conda activate tf-gpu
 conda install -c nvidia cuda-nvcc
 conda install pandas
 ```
-
+On [GoogleColaboratory](https://colab.research.google.com/) the code will run out-of-the-box.
