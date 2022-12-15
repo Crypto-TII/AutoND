@@ -25,7 +25,7 @@ from dbitnet import make_model
 logging.basicConfig(level=logging.INFO)
 
 ABORT_TRAINING_BELOW_ACC = 0.5050   # if the validation accuracy reaches or falls below this limit, abort further training.
-EPOCHS = 10                         # train for 40 epochs # [TODO bring back to 40 epochs]
+EPOCHS = 40                         # train for 40 epochs # [TODO bring back to 5 epochs]
 NUM_SAMPLES = 10**7                 # create 10 million training samples
 NUM_VAL_SAMPLES = 10**6             # create 1 million validation samples
 BATCHSIZE = 5000                    # training batch size

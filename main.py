@@ -4,8 +4,8 @@ import numpy as np
 import optimizer
 import train_nets
 #import speck3264 as cipher
-#import speck64128 as cipher
-import speck128256 as cipher
+import speck64128 as cipher
+#import speck128256 as cipher
 
 plain_bits = cipher.plain_bits
 key_bits = cipher.key_bits
