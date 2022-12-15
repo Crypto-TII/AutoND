@@ -15,9 +15,9 @@ def make_model(input_size=64, n_filters=32, n_add_filters=16):
     """
 
     import tensorflow as tf
-    from keras.models import Model
-    from keras.layers import Input, Conv1D, Dense, Dropout, Lambda, concatenate, BatchNormalization, Activation, Add
-    from keras.regularizers import l2
+    from tf.keras.models import Model
+    from tf.keras.layers import Input, Conv1D, Dense, Dropout, Lambda, concatenate, BatchNormalization, Activation, Add
+    from tf.keras.regularizers import l2
 
     # determine the dilation rates from the given input size
     dilation_rates = get_dilation_rates(input_size)

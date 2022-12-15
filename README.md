@@ -17,8 +17,8 @@ The output should be similar to the following:
 ```bash
 ======================================================================
 PART 1: Find the `best input difference` and the `highest round` using the evolutionary optimizer...
-Generation 0/5, 528 nodes explored, 32 current, best is ['0x222d802', '0x507cfe90', '0xf074e0c0', '0x46c9c00'] with [0.2751875 0.2900625 0.3088125 0.325375 ]
-Generation 1/5, 1024 nodes explored, 32 current, best is ['0xf02337e0', '0xee3efdfe', '0x46c9c00', '0x44e9c00'] with [0.3186875 0.3204375 0.325375  0.34425  ]
+Generation 0/5, 528 nodes explored, 32 current, best is ['0x222d802', ..., '0x46c9c00'] with [0.2751875 ... 0.325375 ]
+Generation 1/5, 1024 nodes explored, 32 current, best is ['0xf02337e0', ..., '0x44e9c00'] with [0.3186875 ...  0.34425  ]
 ...
 Final :  6
 ```
@@ -94,3 +94,6 @@ import speck64128 as cipher
 ```
 
 ## Adding a new cipher
+
+## Prerequisites 
+
