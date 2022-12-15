@@ -119,4 +119,4 @@ conda activate tf-gpu
 conda install -c nvidia cuda-nvcc
 conda install pandas
 ```
-On [GoogleColaboratory](https://colab.research.google.com/) the code will run out-of-the-box.
+On [GoogleColaboratory](https://colab.research.google.com/) the code will run out-of-the-box without any additional installations.

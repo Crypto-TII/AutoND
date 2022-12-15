@@ -8,7 +8,7 @@ from types import FunctionType
 from timeit import default_timer as timer
 import numpy as np
 
-NUM_GENERATIONS = 50     # 50 in the paper, set to 5 here for demonstration [TODO: set back to 5]
+NUM_GENERATIONS = 5      # 50 in the paper, set to 5 here for demonstration
 NUM_SAMPLES = 10**3      # The number of samples used to compute the bias score
 
 def bitArrayToIntegers(arr):
