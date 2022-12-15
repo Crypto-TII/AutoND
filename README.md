@@ -13,7 +13,41 @@ Please run the code by executing
 python main.py
 ```
 The output should be similar to the following: 
+
 ```bash
+======================================================================
+PART 1: Find the `best input difference` and the `highest round` using the evolutionary optimizer...
+Generation 0/5, 528 nodes explored, 32 current, best is ['0x222d802', '0x507cfe90', '0xf074e0c0', '0x46c9c00'] with [0.2751875 0.2900625 0.3088125 0.325375 ]
+Generation 1/5, 1024 nodes explored, 32 current, best is ['0xf02337e0', '0xee3efdfe', '0x46c9c00', '0x44e9c00'] with [0.3186875 0.3204375 0.325375  0.34425  ]
+...
+Final :  6
+```
+This output shows the search process, where the current best few differences and their scores are displayed at each generation, for each round. 
+`Final 6` means that the search ended at round 6 (because more rounds don't appear to be biased).
+
+```bash
+Best at 1 : 
+ ['0xd729a02d', '0x4671800d', ..., '0x400000']
+ [0.14318750000000005, 0.20981249999999999, ..., , 0.5]
+...
+Best at 5 : 
+ ['0x44e9c00', '0x8001010', ..., '0x400000']
+[0.009593750000000009, 0.009812500000000005, ..., 0.06493750000000001]
+```
+This output shows the best differences for each round and their scores, ranked from bad to good. 
+
+```bash
+Best Weighted : 
+ ['0xd729a02d', '0x4671800d', ..., , '0x400000']
+[0.34765625000000017, 0.42078125000000016,... , 3.31446875]
+```
+The final output bit is the weighted scores (sum of the scores at each round times the round number). The best difference overall is the last one in the best weighted list.
+
+The best difference and the highest round found by the evolutionary optimizer are passed to the neural network distinguisher. 
+The training progress for each round of the staged training is shown.
+```bash
+======================================================================
+PART 2: Train DBitNet using staged training  
 INFO:root:CREATE NEURAL NETWORK MODEL.
 INFO:root:determined cipher input size = 64
 INFO:root:CREATE DATA for round 5...
@@ -49,6 +83,7 @@ INFO:root:TRAIN neural network for round 9...
 ...
 INFO:root:ABORT TRAINING (best validation accuracy <= 50.5)
 ```
+The training is aborted in the round where the best validation accuracy falls below 50.5%. 
 
 ### Test SPECK64 or SPECK128
 Please change `main.py` accordingly, e.g. for SPECK64: 

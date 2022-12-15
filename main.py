@@ -46,8 +46,7 @@ if __name__ == "__main__":
 
     print("\n")
     print("=" * 70)
-    str_best_difference = hex(optimizer.bitArrayToIntegers(best_difference))
-    print(f"PART 2: Train DBitNet using staged training on the `best input difference={str_best_difference}` starting one round before the `highest round={highest_round}`...")
+    print(f"PART 2: Train DBitNet using staged training on the `best input difference` starting one round before the `highest round`...")
 
     # Training the neural distinguisher, starting from 1 round before the last biased round detected by the optimizer
     best_round, best_val_acc = train_nets.train_neural_distinguisher(starting_round = max(1, highest_round-1),
