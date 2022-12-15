@@ -25,7 +25,7 @@ from dbitnet import make_model
 logging.basicConfig(level=logging.INFO)
 
 ABORT_TRAINING_BELOW_ACC = 0.5050   # if the validation accuracy reaches or falls below this limit, abort further training.
-EPOCHS = 40                         # train for 40 epochs
+EPOCHS = 5                          # train for 40 epochs # [TODO bring back to 40 epochs]
 NUM_SAMPLES = 10**7                 # create 10 million training samples
 NUM_VAL_SAMPLES = 10**6             # create 1 million validation samples
 BATCHSIZE = 5000                    # training batch size
@@ -81,7 +81,7 @@ def train_neural_distinguisher(starting_round, data_generator):
     # Create the neural network model
     #------------------------------------------------
     logging.info("CREATE NEURAL NETWORK MODEL.")
-    _X, _Y = data_generator(10, starting_round)  # create a single datapoint to determine the input size
+    _X, _Y = data_generator(10, starting_round)  # create a small number of datapoints to determine the input size
     input_size = _X.shape[1]                     # determine the input_size from the single datapoint
     model = make_model(input_size)
     optimizer = tf.optimizers.Adam(amsgrad=True)
@@ -101,7 +101,7 @@ def train_neural_distinguisher(starting_round, data_generator):
         # Train one round
         # ------------------------------------------------
         # create data
-        logging.info(f"CREATE DATA for round {current_round}...")
+        logging.info(f"CREATE CIPHER DATA for round {current_round} (training samples={NUM_SAMPLES:.0e}, validation samples={NUM_VAL_SAMPLES:.0e})...")
         X, Y = data_generator(NUM_SAMPLES, current_round)
         X_val, Y_val = data_generator(NUM_VAL_SAMPLES, current_round)
 
