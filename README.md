@@ -92,7 +92,7 @@ Please change `main.py` accordingly, e.g. for SPECK64:
 import speck64128 as cipher
 #import speck128256 as cipher
 ```
-Please consider increasing the number of generations `NUM_GENERATIONS` and number of epochs `EPOCHS` parameters as discussed [below](## Reproduce results from table 5 and 6 in the manuscript).
+Please consider increasing the number of generations `NUM_GENERATIONS` and number of epochs `EPOCHS` parameters as discussed [below](#reproduce-results-from-table-5-and-6-in-the-manuscript).
 
 ## Reproduce results from table 5 and 6 in the manuscript
 For demonstration purposes, the settings in the provided code are reduced to 
