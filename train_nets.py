@@ -51,6 +51,7 @@ def train_one_round(model,
 
     # load weight checkpoint from previous round?
     if load_weight_file:
+        logging.info("loading weights from previous round...")
         model.load_weights(f'results/model_round{round_number-1}.h5')
 
     # create model checkpoint callback for this round

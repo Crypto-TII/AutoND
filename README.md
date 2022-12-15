@@ -93,7 +93,30 @@ import speck64128 as cipher
 #import speck128256 as cipher
 ```
 
+## Reproduce results from table 5 and 6 in the manuscript
+For demonstration purposes, the settings in the provided code are reduced to 
+```python
+NUM_GENERATIONS = 5 # 50 in the paper, set to 5 here for demonstration in optimizer.py
+EPOCHS = 5          # 40 in the paper, set to 5 here for demonstration in train_nets.py
+```
+Please set them to the original values to reproduce the values obtained in the manuscript. For SPECK32 the demonstration settings should still reach round 8 with 50.9% validation accuracy.
+
 ## Adding a new cipher
+Please create a `mycipher.py` Python file with the structure as shown in e.g. `speck3264.py`. Modify `main.py` accordingly:
+```python
+#import speck3264 as cipher
+#import speck64128 as cipher
+#import speck128256 as cipher
+import mycipher as cipher
+```
 
 ## Prerequisites 
+The code execution relies on standard Python modules, except for `tensorflow`.
+If you start from an empty Python Anaconda environment, the following installation should be sufficient: 
+```bash
+conda create -n tf-gpu tensorflow-gpu
+conda activate tf-gpu
+conda install -c nvidia cuda-nvcc
+conda install pandas
+```
 
