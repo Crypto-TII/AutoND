@@ -105,6 +105,7 @@ def optimize(plain_bits, key_bits, encryption_function, nb_samples=NUM_SAMPLES, 
         # Reevaluate all differences for best round:
     print("Final : ", current_round)
     finalScores = [None for i in range(current_round)]
+    allDiffs = np.unique(allDiffs, axis=0)
     cumulativeScores = np.zeros(len(allDiffs))
     weightedScores = np.zeros(len(allDiffs))
     for nr in range(1, current_round):
