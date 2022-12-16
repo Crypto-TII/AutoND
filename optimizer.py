@@ -55,7 +55,7 @@ def evo(f, n=NUM_GENERATIONS, num_bits=32, L = 32, gen=None, verbose = 1):
         tmp = kids[selected].copy()
         kids[selected[0].tolist(), np.random.randint(num_bits, size = numMut)] ^=1
         # Removing kids that have been explored before and duplicates
-        kids = kids[(kids[:, None] != explored).any(-1).all(-1)]
+        kids = np.unique(kids[(kids[:, None] != explored).any(-1).all(-1)], axis=0)
         # Appending to explored
         explored = np.vstack([explored, kids])
         cpt+=len(kids)
@@ -91,6 +91,7 @@ def optimize(plain_bits, key_bits, encryption_function, nb_samples=NUM_SAMPLES, 
         pt0 = (np.frombuffer(urandom(nb_samples*plain_bits),dtype=np.uint8)&1).reshape(nb_samples, plain_bits);
         C0 = encryption_function(pt0, keys0, current_round)
         #diffs, scores = evo(f=lambda x: evaluate_multiple_differences(x, pt0, keys0, C0, current_round, plain_bits, key_bits, encryption_function), num_bits = bits_to_search, L=32, gen=None)
+        # The initial set of differences can be set to None, or to the differences returned for the previous round. We use the second option here, as opposed to the first (above) in the paper.
         diffs, scores = evo(f=lambda x: evaluate_multiple_differences(x, pt0, keys0, C0, current_round, plain_bits, key_bits, encryption_function, scenario=scenario), num_bits = bits_to_search, L=32, gen=diffs)
         if allDiffs is None:
             allDiffs = diffs
