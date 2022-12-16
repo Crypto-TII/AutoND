@@ -1,3 +1,14 @@
+# This is a vectorized implementation of the SPECK32 cipher, compatible with our optimizer and neural distinguisher.
+
+#### ADDING A CIPHER
+# In order to be compatible with this repo, a cipher implementation must:
+# - Provide plain_bits and key_bits variables, giving respectively the number of bits in the plaintext and in the key.
+# - Provide a vectorized “encrypt(p, k, r)” function, that takes as input, for n samples:
+#       - An n by plain_bits binary matrix p of numpy.uint8 for the plaintexts;
+#       - An n by key_bits binary matrix of numpy.uint8 for the keys;
+#       - A number of rounds r.
+# The encrypt function must return an n by plain_bits matrix of numpy.uint8 containing the ciphertexts. The encrypt function in the provided in this file exemplifies the use of the functions “convert_to_binary” and “convert_from_binary” to translate between binary matrices and the native format of the cipher implementation.
+
 import numpy as np
 
 plain_bits = 32
@@ -52,8 +63,9 @@ def expand_key(k, t):
         l[i%3], ks[i+1] = enc_one_round((l[i%3], ks[i]), i);
     return(ks);
 
+# The encrypt function must adhere to this format, with p and k being binary matrices representing the plaintexts and the key, and the return value being a binary matrix as well.
 def encrypt(p, k, r):
-    P = convert_from_binary(p)
+    P = convert_from_binary(p) 
     K = convert_from_binary(k).transpose()
     ks = expand_key(K, r)
     x, y = P[:, 0], P[:, 1];
@@ -91,29 +103,16 @@ def convert_to_binary(arr):
   X = X.transpose();
   return(X);
 
-
-def convert_from_binary(arr):
+# Convert_from_binary takes as input an n by num_bits binary matrix of type np.uint8, for n samples, 
+# and converts it to an n by num_words array of type dtype.
+def convert_from_binary(arr, _dtype=np.uint16):
   num_words = arr.shape[1]//WORD_SIZE()
-  X = np.zeros((len(arr), num_words),dtype=np.uint32);
+  X = np.zeros((len(arr), num_words),dtype=_dtype);
   for i in range(num_words):
     for j in range(WORD_SIZE()):
         pos = WORD_SIZE()*i+j
         X[:, i] += 2**(WORD_SIZE()-1-j)*arr[:, pos]
   return(X);
-#def convert_from_binary(arr):
-#    n = len(arr)
-#    num_bits = arr.shape[1]
-#    packed = np.packbits(arr,  axis = 1)
-#    dtype = np.uint16
-#    packed.dtype = dtype
-#    return packed
-#def convert_from_binary(arr):
-#    n = len(arr)
-#    num_bits = arr.shape[1]
-#    packed = np.packbits(arr,  axis = 1)
-#    dtype = np.uint16
-#    packed.dtype = dtype
-#    return packed
 
 
 

@@ -77,23 +77,11 @@ def convert_to_binary(arr):
   X = X.transpose();
   return(X);
 
-def convert_from_binary(arr):
+def convert_from_binary(arr, _dtype=np.uint32):
   num_words = arr.shape[1]//WORD_SIZE()
-  X = np.zeros((len(arr), num_words),dtype=np.uint32);
+  X = np.zeros((len(arr), num_words),dtype=_dtype);
   for i in range(num_words):
     for j in range(WORD_SIZE()):
         pos = WORD_SIZE()*i+j
         X[:, i] += 2**(WORD_SIZE()-1-j)*arr[:, pos]
   return(X);
-#def convert_from_binary(arr):
-#    n = len(arr)
-#    num_bits = arr.shape[1]
-#    packed = np.packbits(arr,  axis = 1)
-#    dtype = np.uint16
-#    packed.dtype = dtype
-#    return packed
-
-
-
-
-
