@@ -75,19 +75,6 @@ def encrypt(p, k, r):
 
 
 
-
-def check_testvector():
-  key = (0x1918,0x1110,0x0908,0x0100)
-  pt = (0x6574, 0x694c)
-  ks = expand_key(key, 22)
-  ct = encrypt(pt, ks)
-  if (ct == (0xa868, 0x42f2)):
-    print("Testvector verified.")
-    return(True);
-  else:
-    print("Testvector not verified.")
-    return(False);
-
 #convert_to_binary takes as input an array of ciphertext pairs
 #where the first row of the array contains the lefthand side of the ciphertexts,
 #the second row contains the righthand side of the ciphertexts,
