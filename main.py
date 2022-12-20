@@ -2,10 +2,13 @@ from os import urandom
 import numpy as np
 
 import optimizer
-import train_nets
+#import train_nets
 import speck3264 as cipher
 #import speck64128 as cipher
 #import speck128256 as cipher
+#import simon3264 as cipher
+#import simon64128 as cipher
+#import simon128256 as cipher
 
 plain_bits = cipher.plain_bits
 key_bits = cipher.key_bits
@@ -49,5 +52,5 @@ if __name__ == "__main__":
     print(f"PART 2: Train DBitNet using staged training on the `best input difference` starting one round before the `highest round`...")
 
     # Training the neural distinguisher, starting from 1 round before the last biased round detected by the optimizer
-    best_round, best_val_acc = train_nets.train_neural_distinguisher(starting_round = max(1, highest_round-1),
-                                                                     data_generator = lambda num_samples, num_rounds : make_train_data(num_samples, num_rounds, delta_plain, delta_key))
+#    best_round, best_val_acc = train_nets.train_neural_distinguisher(starting_round = max(1, highest_round-1),
+#                                                                     data_generator = lambda num_samples, num_rounds : make_train_data(num_samples, num_rounds, delta_plain, delta_key))
