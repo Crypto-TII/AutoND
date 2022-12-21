@@ -3,14 +3,14 @@ import numpy as np
 
 import optimizer
 import train_nets
-#import speck3264 as cipher
+import speck3264 as cipher
 #import speck64128 as cipher
 #import speck128256 as cipher
 #import simon3264 as cipher
 #import simon64128 as cipher
 #import simon128256 as cipher
 #import present80 as cipher
-import tea as cipher
+#import tea as cipher
 #import xtea as cipher
 
 plain_bits = cipher.plain_bits
