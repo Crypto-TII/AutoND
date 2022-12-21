@@ -9,7 +9,9 @@ import optimizer
 #import simon3264 as cipher
 #import simon64128 as cipher
 #import simon128256 as cipher
-import present80 as cipher
+#import present80 as cipher
+import tea as cipher
+#import xtea as cipher
 
 plain_bits = cipher.plain_bits
 key_bits = cipher.key_bits
