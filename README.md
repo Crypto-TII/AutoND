@@ -5,7 +5,8 @@ _(This work has been submitted and is currently under review. Please keep this c
 ## Note 
 In our manuscript we present results on SPECK32, SPECK64, SPECK128, SIMON64, SIMON128, the GIMLI-PERMUTATION, HIGHT, LEA, TEA, XTEA and PRESENT.
 Our cipher implementations are automatically generated with a proprietary library, so we prefer to not publish them for now. 
-We provide the SPECK32, SPECK64, SPECK128, implementation inspired by that of Gohr as an example.
+We provide the implementation of PRESENT, SPECK, SIMON, TEA, XTEA. 
+SPECK implementation is inspired by that of Gohr as an example.
 
 ## Demo for SPECK32
 Please run the code by executing 
