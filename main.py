@@ -19,8 +19,8 @@ import simeck3264 as cipher
 plain_bits = cipher.plain_bits
 key_bits = cipher.key_bits
 encryption_function = cipher.encrypt
-#scenario = "single-key"
-scenario = "related-key"
+scenario = "single-key"
+#scenario = "related-key"
 
 def make_train_data(n, nr, delta_state=0, delta_key=0):
     """TEMPORARY VERSION."""
@@ -40,7 +40,6 @@ def make_train_data(n, nr, delta_state=0, delta_key=0):
     return C, Y
 
 if __name__ == "__main__":
-
     print("\n")
     print("=" * 70)
     print("PART 1: Find the `best input difference` and the `highest round` using the evolutionary optimizer...")
