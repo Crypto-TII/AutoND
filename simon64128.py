@@ -91,5 +91,14 @@ def convert_from_binary(arr, _dtype=np.uint32):
   return(X);
 
 
+def check_testvectors():
+  p = np.uint32([0x656b696c, 0x20646e75]).reshape(-1, 1)
+  k = np.uint32([0x1b1a1918,0x13121110,0x0b0a0908,0x03020100]).reshape(-1, 1)
+  pb = convert_to_binary(p)
+  kb = convert_to_binary(k)
+  c = convert_from_binary(encrypt(pb, kb, 44))
+  assert np.all(c[0] == [0x44c8fc20, 0xb9dfa07a])
+
+check_testvectors()
 
 

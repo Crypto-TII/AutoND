@@ -88,3 +88,17 @@ def convert_from_binary(arr, _dtype=np.uint16):
         pos = WORD_SIZE()*i+j
         X[:, i] += 2**(WORD_SIZE()-1-j)*arr[:, pos]
   return(X);
+
+def check_testvectors():
+  p = np.uint16([0x6565, 0x6877]).reshape(-1, 1)
+  k = np.uint16([0x1918, 0x1110, 0x0908, 0x0100]).reshape(-1, 1)
+  pb = convert_to_binary(p)
+  kb = convert_to_binary(k)
+  c = convert_from_binary(encrypt(pb, kb, 32))
+  assert np.all(c[0] == [0xc69b, 0xe9bb])
+
+check_testvectors()
+
+
+
+

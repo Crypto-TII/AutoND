@@ -90,3 +90,13 @@ def convert_from_binary(arr, _dtype=np.uint64):
         X[:, i] += 2**(WORD_SIZE()-1-j)*arr[:, pos]
   return(X);
 
+def check_testvectors():
+  p = np.uint64([0x74206e69206d6f6f, 0x6d69732061207369]).reshape(-1, 1)
+  k = np.uint64([0x1f1e1d1c1b1a1918, 0x1716151413121110, 0x0f0e0d0c0b0a0908, 0x0706050403020100]).reshape(-1, 1)
+  pb = convert_to_binary(p)
+  kb = convert_to_binary(k)
+  c = convert_from_binary(encrypt(pb, kb, 72))
+  assert np.all(c[0] == [0x8d2b5579afc8a3a0, 0x3bf72a87efe7b868])
+
+check_testvectors()
+
