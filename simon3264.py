@@ -42,7 +42,8 @@ def encrypt(p, k, r):
     K = convert_from_binary(k).transpose()
     ks = expand_key(K, r)
     x, y = P[:, 0], P[:, 1];
-    for rk in ks:
+    for i in range(r):
+        rk = ks[i]
         x,y = enc_one_round((x,y), rk);
     return convert_to_binary([x, y]);
 
@@ -87,8 +88,3 @@ def convert_from_binary(arr, _dtype=np.uint16):
         pos = WORD_SIZE()*i+j
         X[:, i] += 2**(WORD_SIZE()-1-j)*arr[:, pos]
   return(X);
-
-
-
-
-

@@ -3,7 +3,7 @@ import numpy as np
 
 import optimizer
 import train_nets
-import speck3264 as cipher
+#import speck3264 as cipher
 #import speck64128 as cipher
 #import speck128256 as cipher
 #import simon3264 as cipher
@@ -12,12 +12,15 @@ import speck3264 as cipher
 #import present80 as cipher
 #import tea as cipher
 #import xtea as cipher
+import simeck3264 as cipher
+#import simeck4896 as cipher
+#import simeck64128 as cipher
 
 plain_bits = cipher.plain_bits
 key_bits = cipher.key_bits
 encryption_function = cipher.encrypt
-scenario = "single-key"
-#scenario = "related-key"
+#scenario = "single-key"
+scenario = "related-key"
 
 def make_train_data(n, nr, delta_state=0, delta_key=0):
     """TEMPORARY VERSION."""
