@@ -57,7 +57,8 @@ def encrypt(p, k, r):
     K = convert_from_binary(k).transpose()
     ks = expand_key(K, r)
     x, y = P[:, 0], P[:, 1];
-    for rk in ks:
+    for i in range(r):
+        rk = ks[i]
         x,y = enc_one_round((x,y), rk);
     return convert_to_binary([x, y]);
 
@@ -86,4 +87,14 @@ def convert_from_binary(arr, _dtype=np.uint64):
         pos = WORD_SIZE()*i+j
         X[:, i] += 2**(WORD_SIZE()-1-j)*arr[:, pos]
   return(X);
+
+def check_testvectors():
+  p = np.uint64([0x65736f6874206e49, 0x202e72656e6f6f70]).reshape(-1, 1)
+  k = np.uint64([0x1f1e1d1c1b1a1918, 0x1716151413121110, 0x0f0e0d0c0b0a0908, 0x0706050403020100]).reshape(-1, 1)
+  pb = convert_to_binary(p)
+  kb = convert_to_binary(k)
+  c = convert_from_binary(encrypt(pb, kb, 34))
+  assert np.all(c[0] == [0x4109010405c0f53e, 0x4eeeb48d9c188f43])
+
+check_testvectors()
 
