@@ -8,12 +8,18 @@ from types import FunctionType
 from timeit import default_timer as timer
 import numpy as np
 
-NUM_GENERATIONS = 5      # 50 in the paper, set to 5 here for demonstration
+NUM_GENERATIONS = 10      # 50 in the paper, set to 5 here for demonstration
 NUM_SAMPLES = 10**3      # 10**3 in the paper. The number of samples used to compute the bias score
 
 def bitArrayToIntegers(arr):
     packed = np.packbits(arr,  axis = 1)
     return [int.from_bytes(x.tobytes(), 'big') for x in packed]
+
+
+def empirical_threshold_estimation(n, plain_bits):
+    bits = np.random.randint(2, size = (1000,n,plain_bits))
+    scores = np.average(np.abs(0.5-np.average(bits, axis = 1)), axis=1)
+    return scores
 
 # Computes the bias scores of several candidate_differences, based on the initial plaintexts and keys pt0, keys and the corresponding ciphertexts C0, for nr rounds of a cipher with plain_bits plaintext bits and key_bits key bits.
 def evaluate_multiple_differences(candidate_differences, pt0, keys, C0, nr, plain_bits, key_bits, encrypt, scenario = "single-key"):
@@ -32,8 +38,8 @@ def evaluate_multiple_differences(candidate_differences, pt0, keys, C0, nr, plai
     return scores
 
 # Evolutionary algorithm based on the encryption function f, running for n generations, using differences of num_bits bits, a population size of L, an optional initial population gen, and verbosity set to 0 for silent or 1 for verbose.
-def evo(f, n=NUM_GENERATIONS, num_bits=32, L = 32, gen=None, verbose = 1):
-    mutProb = 100
+def evo(f, n=NUM_GENERATIONS, num_bits=32, L = 32, gen=None, verbose = 0):
+    mutProb = 25
     #gen = np.array([1<<i for i in range(num_bits)], dtype=object)
     #gen = np.array([randint(1,2**num_bits-1) for i in range(pop_size)], dtype=object)
     if gen is None:
@@ -76,7 +82,24 @@ def evo(f, n=NUM_GENERATIONS, num_bits=32, L = 32, gen=None, verbose = 1):
             break
     return gen, scores
 
-def optimize(plain_bits, key_bits, encryption_function, nb_samples=NUM_SAMPLES, scenario = "single-key"):
+
+def PrettyPrintBestNDifferences(differences, scores, n, scenario, plain_bits, key_bits=0):
+    idx = np.arange(len(differences))
+    good = idx[np.argsort(scores)]
+    sorted_diffs = differences[good]
+    sorted_scores = scores[good].round(4)[-n:]
+    diffs_to_print = bitArrayToIntegers(sorted_diffs)[-n:]
+    resStr = ''
+    for idx, d in enumerate(diffs_to_print):
+        if scenario == "related-key":
+            resStr = resStr + f'[hex(d) ({hex(d>>key_bits)}, {hex(d&(2**key_bits-1))}), {sorted_scores[idx]}]\n'
+        else:
+            resStr = resStr + f'[{hex(d)}, {sorted_scores[idx]}]\n'
+
+    #resStr = f'{[hex(x) for x in bitArrayToIntegers(sorted_diffs)][-n:]}\n {sorted_scores.tolist()[-n:]} \n'
+    return resStr, sorted_diffs[-n:], diffs_to_print
+
+def optimize(plain_bits, key_bits, encryption_function, nb_samples=NUM_SAMPLES, scenario = "single-key", log_file = None, run = 0):
     allDiffs = None
     totalScores = {}
     diffs = None
@@ -97,17 +120,20 @@ def optimize(plain_bits, key_bits, encryption_function, nb_samples=NUM_SAMPLES, 
             allDiffs = diffs
         else:
             allDiffs = np.concatenate([allDiffs, diffs])
+        current_round += 1
         if scores[-1] < T:
             break
-        print(current_round, scores[-1])
-        current_round += 1
+        #print(current_round, scores[-1])
 
         # Reevaluate all differences for best round:
-    print("Final : ", current_round)
+    #print("Final : ", current_round)
     finalScores = [None for i in range(current_round)]
     allDiffs = np.unique(allDiffs, axis=0)
     cumulativeScores = np.zeros(len(allDiffs))
     weightedScores = np.zeros(len(allDiffs))
+    if log_file != None:
+        with open('logs/'+log_file, 'a') as f:
+            f.write(f'New log start, run {run}, reached round {str(current_round-1)} \n')
     for nr in range(1, current_round):
         keys0 = (np.frombuffer(urandom(nb_samples*key_bits),dtype=np.uint8)&1).reshape(nb_samples, key_bits);
         pt0 = (np.frombuffer(urandom(nb_samples*plain_bits),dtype=np.uint8)&1).reshape(nb_samples, plain_bits);
@@ -116,20 +142,34 @@ def optimize(plain_bits, key_bits, encryption_function, nb_samples=NUM_SAMPLES, 
         cumulativeScores += np.array(finalScores[nr])
         weightedScores += nr*np.array(finalScores[nr])
 
-        idx = np.arange(len(allDiffs))
-        good = idx[np.argsort(finalScores[nr])]
-        diffs = allDiffs[good]
-        scores = finalScores[nr][good]
+        #idx = np.arange(len(allDiffs))
+        #good = idx[np.argsort(finalScores[nr])]
+        #diffs = allDiffs[good]
+        #scores = finalScores[nr][good]
 
-        print(f'Best at {nr} : \n {[hex(x) for x in bitArrayToIntegers(diffs)]}\n {scores.tolist()}', flush=True)
+        result, _, _ = PrettyPrintBestNDifferences(allDiffs, finalScores[nr], 5, scenario, plain_bits, key_bits)
+        resStr = f'Best at {nr}: \n{result}'
+        #resStr = f'Best at {nr} : \n {[hex(x) for x in bitArrayToIntegers(diffs)][-5:]}\n {scores.tolist()[-5:]} \n'
+        #print(resStr, flush = True)
+        if log_file != None:
+            with open('logs/'+log_file, 'a') as f:
+                f.write(resStr)
 
-    idx = np.arange(len(allDiffs))
-    good = idx[np.argsort(weightedScores)]
-    diffs = allDiffs[good]
-    scores = weightedScores[good]
-    print(f'Best Weighted : \n {[hex(x) for x in bitArrayToIntegers(diffs)]}\n {scores.tolist()}', flush=True)
 
-    return(diffs, current_round)
+    result, _, _ = PrettyPrintBestNDifferences(allDiffs, cumulativeScores, 5, scenario, plain_bits, key_bits)
+    resStr = f'Best Cumulative: \n{result}'
+    if log_file != None:
+        with open('logs/'+log_file, 'a') as f:
+            f.write(resStr)
+
+
+    result, diffs_as_binary, diffs_as_hex = PrettyPrintBestNDifferences(allDiffs, weightedScores, 5, scenario, plain_bits, key_bits)
+    resStr = f'Best Weighted: \n{result}'
+    if log_file != None:
+        with open('logs/'+log_file, 'a') as f:
+            f.write(resStr)
+
+    return(diffs_as_binary, diffs_as_hex, current_round)
 
 
 def optimize_multi(plain_bits, key_bits, encryption_functionA, encryption_functionB, nb_samples=NUM_SAMPLES, scenario = "single-key"):
@@ -164,6 +204,9 @@ def optimize_multi(plain_bits, key_bits, encryption_functionA, encryption_functi
     allDiffs = np.unique(allDiffs, axis=0)
     cumulativeScores = np.zeros(len(allDiffs))
     weightedScores = np.zeros(len(allDiffs))
+    if log_file != None:
+        with open('logs/'+log_file, 'a') as f:
+            f.write("New log start, reached round " + str(current_round))
     for nr in range(1, current_round):
         keys0 = (np.frombuffer(urandom(nb_samples*key_bits),dtype=np.uint8)&1).reshape(nb_samples, key_bits);
         pt0 = (np.frombuffer(urandom(nb_samples*plain_bits),dtype=np.uint8)&1).reshape(nb_samples, plain_bits);
@@ -177,13 +220,23 @@ def optimize_multi(plain_bits, key_bits, encryption_functionA, encryption_functi
         diffs = allDiffs[good]
         scores = finalScores[nr][good]
 
-        print(f'Best at {nr} : \n {[hex(x) for x in bitArrayToIntegers(diffs)]}\n {scores.tolist()}', flush=True)
+        resStr = f'Best at {nr} : \n {[hex(x) for x in bitArrayToIntegers(diffs)]}\n {scores.tolist()}'
+        print(resStr, flush = True)
+        if log_file != None:
+            with open('logs/'+log_file, 'a') as f:
+                f.write(resStr, flush = True)
+
+
 
     idx = np.arange(len(allDiffs))
     good = idx[np.argsort(weightedScores)]
     diffs = allDiffs[good]
     scores = weightedScores[good]
-    print(f'Best Weighted : \n {[hex(x) for x in bitArrayToIntegers(diffs)]}\n {scores.tolist()}', flush=True)
+    resStr = f'Best Weighted : \n {[hex(x) for x in bitArrayToIntegers(diffs)]}\n {scores.tolist()}'
+    print(resStr, flush = True)
+    if log_file != None:
+        with open('logs/'+log_file, 'a') as f:
+            f.write(resStr, flush = True)
 
     return(diffs, current_round)
 
