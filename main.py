@@ -1,3 +1,5 @@
+import os
+
 from os import urandom
 from glob import glob
 import ray
@@ -6,8 +8,8 @@ import numpy as np
 import os
 import optimizer
 import train_nets
+import argparse
 
-num_runs = 1
 
 def make_train_data(encryption_function, plain_bits, key_bits, n, nr, delta_state=0, delta_key=0):
     """TEMPORARY VERSION."""
@@ -27,8 +29,7 @@ def make_train_data(encryption_function, plain_bits, key_bits, n, nr, delta_stat
     return C, Y
 
 
-@ray.remote(num_gpus=0.25)
-def runBestDifferenceSearchForCipher(cipher_name, scenario, run):
+def runBestDifferenceSearchForCipher(cipher_name, scenario, output_dir):
     cipher = importlib.import_module('ciphers.' + cipher_name, package='ciphers')
     s = cipher.__name__[8:] + "_" + scenario
     print("\n")
@@ -38,12 +39,13 @@ def runBestDifferenceSearchForCipher(cipher_name, scenario, run):
     # Optimal difference search...
     plain_bits = cipher.plain_bits
     key_bits = cipher.key_bits
+    word_size = cipher.word_size
     encryption_function = cipher.encrypt
-    best_differences_bin, best_differences_int, highest_round = optimizer.optimize(plain_bits, key_bits, encryption_function, scenario = scenario, log_file=s, run = run) 
+    best_differences_bin, best_differences_int, highest_round = optimizer.optimize(plain_bits, key_bits, encryption_function, scenario = scenario, log_file=f'{output_dir}/{s}') 
 
     print("\n")
     print("=" * 70)
-    print(f"PART 2: Train DBitNet using staged training on the `best five input differences` starting two round before the `highest round`...")
+    print(f"PART 2: Train DBitNet using staged training on the `best input differences` starting two round before the `highest round`...")
 
     # Training the neural distinguisher, starting from two round before the last biased round detected by the optimizer
     for idx, delta in enumerate(best_differences_bin):
@@ -54,23 +56,37 @@ def runBestDifferenceSearchForCipher(cipher_name, scenario, run):
         delta_plain = delta[:plain_bits]
         print(s, hex(best_differences_int[idx]))
         # Starting at -2 because the optimizer now returns the first round for which nothing is found, rather than the last round for which something is found...
-        best_round, best_val_acc = train_nets.train_neural_distinguisher(starting_round = max(1, highest_round-2),
-                                                                 data_generator = lambda num_samples, nr : make_train_data(encryption_function, plain_bits, key_bits, num_samples, nr, delta_plain, delta_key))
-        print(f'Best round for {s} : {best_round}, with accuracy {best_val_acc}')
+        best_round_gohr, best_val_acc_gohr = train_nets.train_neural_distinguisher(starting_round = max(1, highest_round-2),
+                                                                 data_generator = lambda num_samples, nr : make_train_data(encryption_function, plain_bits, key_bits, num_samples, nr, delta_plain, delta_key), model_name = 'gohr', input_size = plain_bits, word_size = word_size, log_prefix = f'{output_dir}/{s}_{hex(best_differences_int[idx])}')
+        best_round_dbitnet, best_val_acc_dbitnet = train_nets.train_neural_distinguisher(starting_round = max(1, highest_round-2),
+                                                                 data_generator = lambda num_samples, nr : make_train_data(encryption_function, plain_bits, key_bits, num_samples, nr, delta_plain, delta_key), model_name = 'dbitnet', input_size = plain_bits, word_size = word_size, log_prefix = f'{output_dir}/{s}_{hex(best_differences_int[idx])}')
+        with open(f'{output_dir}/{s}_{hex(best_differences_int[-1])}_final', 'a') as f:
+            f.write('Best difference, highest Gohr round, gohr val acc, highest dbitnet round, dbitnet val acc\n')
+            f.write(f'[({hex(best_differences_int[-1]>>key_bits)}, {hex(best_differences_int[-1]&(2**key_bits-1))})], {best_round_gohr}, {best_val_acc_gohr}, {best_round_dbitnet}, {best_val_acc_dbitnet}')
+
+
 
 
 if __name__ == "__main__":
-
-    # Starting single and related key search for all ciphers in the ciphers folder
-    modules = glob('ciphers/*.py')
-    modules = [module[8:-3] for module in modules]
-    print("List of ciphers to study : ", modules)
-    L =[]
-    for run in range(num_runs):
-        for m in modules:
-            if m.startswith('speck32'):
-                L.append(runBestDifferenceSearchForCipher.remote(m, 'single-key', run))
-                if not m.startswith('tea'): # Skipping tea related key, because it runs indefinitely due to the probability 1 related key trail.
-                    L.append(runBestDifferenceSearchForCipher.remote(m, 'related-key', run))
-    ray.get(L)
-
+    ciphers_list = glob('ciphers/*.py')
+    ciphers_list = [cipher[8:-3] for cipher in ciphers_list]
+    scenarios_list = ['single-key', 'related-key']
+    parser = argparse.ArgumentParser(description='Obtain good input differences for neural cryptanalysis.')
+    parser.add_argument('cipher', type=str, nargs=1,
+            help=f'the name of the cipher to be analyzed, from the following list: {ciphers_list}')
+    parser.add_argument('scenario', type=str, nargs=1,
+            help=f'the scenario, either single-key or related-key', default = 'single-key')
+    parser.add_argument('-o', '--output', type=str, nargs=1, default ='results',
+            help=f'the folder where to store the experiments results')
+    arguments = parser.parse_args()
+    cipher_to_study = arguments.cipher[0]
+    scenario = arguments.scenario[0]
+    output_dir = arguments.output[0]
+    if cipher_to_study not in ciphers_list:
+        raise Exception(f'Cipher name error: it has to be one of {ciphers_list}.')
+    if scenario not in scenarios_list:
+        raise Exception(f'Scenario name error: it has to be one of {scenarios_list}.')
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    print(f'Running the search for {cipher_to_study}, in the {scenario} scenario...')
+    runBestDifferenceSearchForCipher(cipher_to_study, scenario, output_dir)

@@ -2,6 +2,7 @@ import numpy as np
 
 plain_bits = 128
 key_bits = 256
+word_size = 64
 
 def WORD_SIZE():
     return(64);

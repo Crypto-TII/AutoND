@@ -2,6 +2,7 @@ import numpy as np
 
 plain_bits = 64
 key_bits = 128
+word_size = 32
 
 def add_mod(v1, v2, mod = 2**32):
     return (v1+v2)%mod

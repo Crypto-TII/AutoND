@@ -3,6 +3,7 @@ from os import urandom
 
 plain_bits = 64
 key_bits = 128
+word_size = 32
 
 def WORD_SIZE():
     return(32)
