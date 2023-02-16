@@ -1,10 +1,11 @@
 import numpy as np
 
-plain_bits = 64
-key_bits = 128
+plain_bits = 128
+key_bits = 256
+word_size = 64
 
 def WORD_SIZE():
-    return(32);
+    return(64);
 
 def ALPHA():
     return(8);
@@ -78,7 +79,8 @@ def convert_to_binary(arr):
   X = X.transpose();
   return(X);
 
-def convert_from_binary(arr, _dtype=np.uint32):
+
+def convert_from_binary(arr, _dtype=np.uint64):
   num_words = arr.shape[1]//WORD_SIZE()
   X = np.zeros((len(arr), num_words),dtype=_dtype);
   for i in range(num_words):
@@ -88,12 +90,12 @@ def convert_from_binary(arr, _dtype=np.uint32):
   return(X);
 
 def check_testvectors():
-  p = np.uint32([0x3b726574, 0x7475432d]).reshape(-1, 1)
-  k = np.uint32([0x1b1a1918,0x13121110,0x0b0a0908,0x03020100]).reshape(-1, 1)
+  p = np.uint64([0x65736f6874206e49, 0x202e72656e6f6f70]).reshape(-1, 1)
+  k = np.uint64([0x1f1e1d1c1b1a1918, 0x1716151413121110, 0x0f0e0d0c0b0a0908, 0x0706050403020100]).reshape(-1, 1)
   pb = convert_to_binary(p)
   kb = convert_to_binary(k)
-  c = convert_from_binary(encrypt(pb, kb, 27))
-  assert np.all(c[0] == [0x8c6fa548, 0x454e028b])
+  c = convert_from_binary(encrypt(pb, kb, 34))
+  assert np.all(c[0] == [0x4109010405c0f53e, 0x4eeeb48d9c188f43])
 
 check_testvectors()
 

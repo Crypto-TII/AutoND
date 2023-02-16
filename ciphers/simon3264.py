@@ -3,26 +3,18 @@ from os import urandom
 
 plain_bits = 32
 key_bits = 64
+word_size = 16
 
 def WORD_SIZE():
     return(16)
+def ALPHA():
+    return(1)
+def BETA():
+    return(8)
+def GAMMA():
+    return(2)
 
 MASK_VAL = 2**WORD_SIZE() - 1
-def get_sequence(num_rounds):
-    if num_rounds < 40:
-        states = [1] * 5
-    else:
-        states = [1] * 6
-
-    for i in range(num_rounds - 5):
-        if num_rounds < 40:
-            feedback = states[i + 2] ^ states[i]
-        else:
-            feedback = states[i + 1] ^ states[i]
-        states.append(feedback)
-    return tuple(states)
-
-CONSTANT = 2**16 - 4
 
 def rol(x, k):
     return(((x << k) & MASK_VAL) | (x >> (WORD_SIZE() - k)))
@@ -31,8 +23,8 @@ def ror(x, k):
 
 def enc_one_round(p, k):
     tmp, c1 = p[0], p[1]
-    tmp = tmp & rol(tmp,5)
-    tmp = tmp ^ rol(p[0], 1)
+    tmp = rol(tmp, ALPHA()) & rol(tmp, BETA())
+    tmp = tmp ^ rol(p[0], GAMMA())
     c1 = c1 ^ tmp
     c1 = c1 ^ k
     return(c1, p[0])
@@ -51,27 +43,25 @@ def encrypt(p, k, r):
     K = convert_from_binary(k).transpose()
     ks = expand_key(K, r)
     x, y = P[:, 0], P[:, 1];
-    i=0
     for i in range(r):
         rk = ks[i]
         x,y = enc_one_round((x,y), rk);
     return convert_to_binary([x, y]);
 
+
 def expand_key(k, t):
-    sequence = get_sequence(t)
-    ks = [0 for i in range(t)];
-    #ks[0] = k[len(k)-1];
-    states = list(reversed(k[:len(k)]));
-    for i in range(t):
-        ks[i] = states[0]
-        l, r = states[1], states[0]
-        l, r = enc_one_round((l, r), CONSTANT^sequence[i]);
-
-        states.append(l)
-        states.pop(0)
-        states[0] = r
-    return(ks);
-
+    ks = [0 for i in range(t)]
+    ks[0:4] = reversed(k[0:4])
+    m = 4
+    round_constant = MASK_VAL ^ 3
+    z = (0b01100111000011010100100010111110110011100001101010010001011111)
+    for i in range(m, t):
+        c_z = ((z >> ((i-m) % 62)) & 1) ^ round_constant
+        tmp = ror(ks[i-1], 3)
+        tmp = tmp ^ ks[i-3]
+        tmp = tmp ^ ror(tmp, 1)
+        ks[i] = ks[i-m] ^ tmp ^ c_z
+    return(ks)
 
 
 #convert_to_binary takes as input an array of ciphertext pairs
@@ -106,6 +96,10 @@ def check_testvectors():
   pb = convert_to_binary(p)
   kb = convert_to_binary(k)
   c = convert_from_binary(encrypt(pb, kb, 32))
-  assert np.all(c[0] == [0x770d, 0x2c76])
+  assert np.all(c[0] == [0xc69b, 0xe9bb])
 
 check_testvectors()
+
+
+
+

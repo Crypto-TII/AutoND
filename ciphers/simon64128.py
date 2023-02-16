@@ -1,11 +1,12 @@
 import numpy as np
 from os import urandom
 
-plain_bits = 32
-key_bits = 64
+plain_bits = 64
+key_bits = 128
+word_size = 32
 
 def WORD_SIZE():
-    return(16)
+    return(32)
 def ALPHA():
     return(1)
 def BETA():
@@ -53,7 +54,7 @@ def expand_key(k, t):
     ks[0:4] = reversed(k[0:4])
     m = 4
     round_constant = MASK_VAL ^ 3
-    z = (0b01100111000011010100100010111110110011100001101010010001011111)
+    z = 0b11110000101100111001010001001000000111101001100011010111011011
     for i in range(m, t):
         c_z = ((z >> ((i-m) % 62)) & 1) ^ round_constant
         tmp = ror(ks[i-1], 3)
@@ -61,6 +62,7 @@ def expand_key(k, t):
         tmp = tmp ^ ror(tmp, 1)
         ks[i] = ks[i-m] ^ tmp ^ c_z
     return(ks)
+
 
 
 #convert_to_binary takes as input an array of ciphertext pairs
@@ -80,7 +82,7 @@ def convert_to_binary(arr):
 
 # Convert_from_binary takes as input an n by num_bits binary matrix of type np.uint8, for n samples,
 # and converts it to an n by num_words array of type dtype.
-def convert_from_binary(arr, _dtype=np.uint16):
+def convert_from_binary(arr, _dtype=np.uint32):
   num_words = arr.shape[1]//WORD_SIZE()
   X = np.zeros((len(arr), num_words),dtype=_dtype);
   for i in range(num_words):
@@ -89,16 +91,15 @@ def convert_from_binary(arr, _dtype=np.uint16):
         X[:, i] += 2**(WORD_SIZE()-1-j)*arr[:, pos]
   return(X);
 
+
 def check_testvectors():
-  p = np.uint16([0x6565, 0x6877]).reshape(-1, 1)
-  k = np.uint16([0x1918, 0x1110, 0x0908, 0x0100]).reshape(-1, 1)
+  p = np.uint32([0x656b696c, 0x20646e75]).reshape(-1, 1)
+  k = np.uint32([0x1b1a1918,0x13121110,0x0b0a0908,0x03020100]).reshape(-1, 1)
   pb = convert_to_binary(p)
   kb = convert_to_binary(k)
-  c = convert_from_binary(encrypt(pb, kb, 32))
-  assert np.all(c[0] == [0xc69b, 0xe9bb])
+  c = convert_from_binary(encrypt(pb, kb, 44))
+  assert np.all(c[0] == [0x44c8fc20, 0xb9dfa07a])
 
 check_testvectors()
-
-
 
 

@@ -1,11 +1,12 @@
 import numpy as np
 from os import urandom
 
-plain_bits = 64
-key_bits = 128
+plain_bits = 32
+key_bits = 64
+word_size = 16
 
 def WORD_SIZE():
-    return(32)
+    return(16)
 
 MASK_VAL = 2**WORD_SIZE() - 1
 def get_sequence(num_rounds):
@@ -13,6 +14,7 @@ def get_sequence(num_rounds):
         states = [1] * 5
     else:
         states = [1] * 6
+
     for i in range(num_rounds - 5):
         if num_rounds < 40:
             feedback = states[i + 2] ^ states[i]
@@ -21,7 +23,7 @@ def get_sequence(num_rounds):
         states.append(feedback)
     return tuple(states)
 
-CONSTANT = 2**WORD_SIZE() - 4
+CONSTANT = 2**16 - 4
 
 def rol(x, k):
     return(((x << k) & MASK_VAL) | (x >> (WORD_SIZE() - k)))
@@ -90,7 +92,7 @@ def convert_to_binary(arr):
 
 # Convert_from_binary takes as input an n by num_bits binary matrix of type np.uint8, for n samples,
 # and converts it to an n by num_words array of type dtype.
-def convert_from_binary(arr, _dtype=np.uint32):
+def convert_from_binary(arr, _dtype=np.uint16):
   num_words = arr.shape[1]//WORD_SIZE()
   X = np.zeros((len(arr), num_words),dtype=_dtype);
   for i in range(num_words):
@@ -100,11 +102,11 @@ def convert_from_binary(arr, _dtype=np.uint32):
   return(X);
 
 def check_testvectors():
-  p = np.uint32([0x656b696c, 0x20646e75]).reshape(-1, 1)
-  k = np.uint32([0x1b1a1918,0x13121110,0x0b0a0908,0x03020100]).reshape(-1, 1)
+  p = np.uint16([0x6565, 0x6877]).reshape(-1, 1)
+  k = np.uint16([0x1918, 0x1110, 0x0908, 0x0100]).reshape(-1, 1)
   pb = convert_to_binary(p)
   kb = convert_to_binary(k)
-  c = convert_from_binary(encrypt(pb, kb, 44))
-  assert np.all(c[0] == [0x45ce6902, 0x5f7ab7ed])
+  c = convert_from_binary(encrypt(pb, kb, 32))
+  assert np.all(c[0] == [0x770d, 0x2c76])
 
 check_testvectors()
