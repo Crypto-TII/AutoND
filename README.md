@@ -11,7 +11,7 @@ SPECK implementation is inspired by that of Gohr as an example.
 ## Demo for SPECK32
 Please run the code by executing 
 ```bash
-python main.py
+python main.py speck3264 single-key
 ```
 The output should be similar to the following: 
 
