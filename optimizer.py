@@ -9,8 +9,8 @@ from timeit import default_timer as timer
 import numpy as np
 import pandas as pd
 
-NUM_GENERATIONS = 50     # 50 in the paper, set to 5 here for demonstration
-NUM_SAMPLES = 10**4      # 10**4 in the paper. The number of samples used to compute the bias score
+NUM_GENERATIONS = 25     # 50 in the paper, set to 5 here for demonstration
+NUM_SAMPLES = 10**3      # 10**4 in the paper. The number of samples used to compute the bias score
 
 def bitArrayToIntegers(arr):
     packed = np.packbits(arr,  axis = 1)
@@ -201,7 +201,7 @@ def optimize(plain_bits, key_bits, encryption_function, nb_samples=NUM_SAMPLES, 
     resStr = f'Best Weighted: \n{result}'
     if log_file != None:
         with open(log_file, 'a') as f:
-            f.write(resStr) 
+            f.write(resStr)
 
     df = DataframeFromSortedDifferences(allDiffs, weightedScores, scenario, plain_bits, key_bits)
     df.to_csv(f'{log_file}_best_weighted_differences.csv')
