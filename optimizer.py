@@ -9,8 +9,8 @@ from timeit import default_timer as timer
 import numpy as np
 import pandas as pd
 
-NUM_GENERATIONS = 25     # 50 in the paper, set to 5 here for demonstration
-NUM_SAMPLES = 10**3      # 10**4 in the paper. The number of samples used to compute the bias score
+NUM_GENERATIONS = 50     # 50 in the paper, set to 5 here for demonstration
+NUM_SAMPLES = 10**4      # 10**4 in the paper. The number of samples used to compute the bias score
 
 def bitArrayToIntegers(arr):
     packed = np.packbits(arr,  axis = 1)
@@ -40,9 +40,7 @@ def evaluate_multiple_differences(candidate_differences, pt0, keys, C0, nr, plai
 
 # Evolutionary algorithm based on the encryption function f, running for n generations, using differences of num_bits bits, a population size of L, an optional initial population gen, and verbosity set to 0 for silent or 1 for verbose.
 def evo(f, n=NUM_GENERATIONS, num_bits=32, L = 32, gen=None, verbose = 0):
-    mutProb = 25
-    #gen = np.array([1<<i for i in range(num_bits)], dtype=object)
-    #gen = np.array([randint(1,2**num_bits-1) for i in range(pop_size)], dtype=object)
+    mutProb = 100
     if gen is None:
         gen = np.random.randint(2, size = (L**2, num_bits), dtype=np.uint8)
     scores = f(gen)
@@ -99,6 +97,24 @@ def DataframeFromSortedDifferences(differences, scores, scenario, plain_bits, ke
     df = pd.DataFrame(data, columns=['Difference', 'Weighted score'])
     return df
 
+def PrettyPrintBestEpsilonCloseDifferences(differences, scores, epsilon, scenario, plain_bits, key_bits=0):
+    idx = np.arange(len(differences))
+    order = idx[np.argsort(scores)]
+    sorted_diffs = differences[order]
+    sorted_scores = scores[order].round(4)
+    best_score = sorted_scores[-1]
+    threshold = best_score*(1-epsilon)
+    keep = np.where(sorted_scores>threshold)
+    diffs_to_print = bitArrayToIntegers(sorted_diffs[keep])
+    scores_to_print = sorted_scores[keep]
+    resStr = ''
+    for idx, d in enumerate(diffs_to_print):
+        if scenario == "related-key":
+            resStr = resStr + f'[{hex(d)} ({hex(d>>key_bits)}, {hex(d&(2**key_bits-1))}), {scores_to_print[idx]}]\n'
+        else:
+            resStr = resStr + f'[{hex(d)}, {scores_to_print[idx]}]\n'
+    return resStr, sorted_diffs[keep], diffs_to_print
+
 
 def PrettyPrintBestNDifferences(differences, scores, n, scenario, plain_bits, key_bits=0):
     idx = np.arange(len(differences))
@@ -115,7 +131,7 @@ def PrettyPrintBestNDifferences(differences, scores, n, scenario, plain_bits, ke
     return resStr, sorted_diffs[-n:], diffs_to_print
 
 
-def optimize(plain_bits, key_bits, encryption_function, nb_samples=NUM_SAMPLES, scenario = "single-key", log_file = None):
+def optimize(plain_bits, key_bits, encryption_function, nb_samples=NUM_SAMPLES, scenario = "single-key", log_file = None, epsilon=0.1):
     allDiffs = None
     totalScores = {}
     diffs = None
@@ -137,6 +153,7 @@ def optimize(plain_bits, key_bits, encryption_function, nb_samples=NUM_SAMPLES, 
         else:
             allDiffs = np.concatenate([allDiffs, diffs])
         current_round += 1
+        print(current_round, end = " ")
         if scores[-1] < T:
             break
         #print(current_round, scores[-1])
@@ -179,7 +196,8 @@ def optimize(plain_bits, key_bits, encryption_function, nb_samples=NUM_SAMPLES, 
             f.write(resStr)
 
 
-    result, diffs_as_binary, diffs_as_hex = PrettyPrintBestNDifferences(allDiffs, weightedScores, 1, scenario, plain_bits, key_bits)
+   # result, diffs_as_binary, diffs_as_hex = PrettyPrintBestNDifferences(allDiffs, weightedScores, 1, scenario, plain_bits, key_bits)
+    result, diffs_as_binary, diffs_as_hex = PrettyPrintBestEpsilonCloseDifferences(allDiffs, weightedScores, epsilon, scenario, plain_bits, key_bits)
     resStr = f'Best Weighted: \n{result}'
     if log_file != None:
         with open(log_file, 'a') as f:

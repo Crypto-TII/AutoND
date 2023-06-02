@@ -5,7 +5,7 @@ from keras.regularizers import l2
 
 
 #make residual tower of convolutional blocks
-def make_model(input_size, num_filters=32, num_outputs=1, d1=64, d2=64, word_size=16, ks=3,depth=1, reg_param=0.0001, final_activation='sigmoid'):
+def make_model(input_size, num_filters=32, num_outputs=1, d1=64, d2=64, word_size=16, ks=3,depth=1, reg_param=10**-5, final_activation='sigmoid'):
   #Input and preprocessing layers
   inp = Input(shape=(input_size,));
   rs = Reshape((input_size//word_size, word_size))(inp);
