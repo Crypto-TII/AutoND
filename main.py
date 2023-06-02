@@ -98,16 +98,17 @@ def trainNeuralDistinguishers(cipher_name, scenario, output_dir, input_differenc
 def runBestDifferenceSearchForCipher(cipher_name, scenario, output_dir, epochs = None):
     cipher = importlib.import_module('ciphers.' + cipher_name, package='ciphers')
     s = cipher.__name__[8:] + "_" + scenario
+    epsilon = 0.1
     print("\n")
     print("=" * 70)
-    print("PART 1: Find the `best input difference` and the `highest round` using the evolutionary optimizer for ", s, "...")
+    print(f"PART 1: Find the {epsilon}-close input differences and the `highest round` using the evolutionary optimizer for ", s, "...")
 
     # Optimal difference search...
     plain_bits = cipher.plain_bits
     key_bits = cipher.key_bits
     word_size = cipher.word_size
     encryption_function = cipher.encrypt
-    best_differences_bin, best_differences_int, highest_round = optimizer.optimize(plain_bits, key_bits, encryption_function, scenario = scenario, log_file=f'{output_dir}/{s}')
+    best_differences_bin, best_differences_int, highest_round = optimizer.optimize(plain_bits, key_bits, encryption_function, scenario = scenario, log_file=f'{output_dir}/{s}', epsilon = epsilon)
 
     print("\n")
     print("=" * 70)
