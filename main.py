@@ -33,20 +33,15 @@ def integer_to_binary_array(int_val, num_bits):
     return np.array([int(i) for i in bin(int_val)[2:].zfill(num_bits)], dtype = np.uint8).reshape(1, num_bits)
 
 
-def findGoodInputDifferences(cipher_name, scenario, output_dir):
+def findGoodInputDifferences(cipher_name, scenario, output_dir, epsilon = 0.1):
     cipher = importlib.import_module('ciphers.' + cipher_name, package='ciphers')
     s = cipher.__name__[8:] + "_" + scenario
-    print("\n")
-    print("=" * 70)
-    print("PART 1: Find the `best input difference` and the `highest round` using the evolutionary optimizer for ", s, "...")
-
-    # Optimal difference search...
     plain_bits = cipher.plain_bits
     key_bits = cipher.key_bits
     word_size = cipher.word_size
     encryption_function = cipher.encrypt
-    best_differences_bin, best_differences_int, highest_round = optimizer.optimize(plain_bits, key_bits, encryption_function, scenario = scenario, log_file=f'{output_dir}/{s}')
-    return best_differences_bin, best_differences_int, highest_round
+    best_differences, highest_round = optimizer.optimize(plain_bits, key_bits, encryption_function, scenario = scenario, log_file=f'{output_dir}/{s}', epsilon = epsilon)
+    return best_differences, highest_round
 
 
 def trainNeuralDistinguishers(cipher_name, scenario, output_dir, input_difference, starting_round, epochs = None, nets =['gohr', 'dbitnet'], num_samples=None):
@@ -66,16 +61,14 @@ def trainNeuralDistinguishers(cipher_name, scenario, output_dir, input_differenc
         delta_plain = delta[:plain_bits]
         diff_str = hex(input_difference)
 
-    print(s, hex(input_difference))
-
     results = {}
     if cipher_name == 'chacha':
         input_size = 512
     else:
         input_size = plain_bits
-    print(cipher_name, input_size)
     results['Difference'] = diff_str
     for net in nets:
+        print(f'Training {net} for input difference {diff_str}, starting from round {starting_round}...')
         results[net] = {}
         best_round, best_val_acc = train_nets.train_neural_distinguisher(
             starting_round = starting_round,
@@ -93,67 +86,44 @@ def trainNeuralDistinguishers(cipher_name, scenario, output_dir, input_differenc
         f.write(diff_str)
         for net in nets:
             f.write(f'{net} : {results[net]["Best round"]}, {results[net]["Validation accuracy"]}')
+    print(results)
+    return results
 
 
-def runBestDifferenceSearchForCipher(cipher_name, scenario, output_dir, epochs = None):
-    cipher = importlib.import_module('ciphers.' + cipher_name, package='ciphers')
-    s = cipher.__name__[8:] + "_" + scenario
-    epsilon = 0.1
-    print("\n")
-    print("=" * 70)
-    print(f"PART 1: Find the {epsilon}-close input differences and the `highest round` using the evolutionary optimizer for ", s, "...")
-
-    # Optimal difference search...
-    plain_bits = cipher.plain_bits
-    key_bits = cipher.key_bits
-    word_size = cipher.word_size
-    encryption_function = cipher.encrypt
-    best_differences_bin, best_differences_int, highest_round = optimizer.optimize(plain_bits, key_bits, encryption_function, scenario = scenario, log_file=f'{output_dir}/{s}', epsilon = epsilon)
-
-    print("\n")
-    print("=" * 70)
-    print(f"PART 2: Train DBitNet using staged training on the `best input differences` starting two round before the `highest round`...")
-    print(f'Training for {[hex(x) for x in best_differences_int]}...')
-    # Training the neural distinguisher, starting from two round before the last biased round detected by the optimizer
-    for idx, delta in enumerate(best_differences_bin):
-        if scenario == "related-key":
-            delta_key = delta[plain_bits:]
-        else:
-            delta_key = 0
-        delta_plain = delta[:plain_bits]
-        print(s, hex(best_differences_int[idx]))
-        # Starting at -2 because the optimizer now returns the first round for which nothing is found, rather than the last round for which something is found...
-        best_round_gohr, best_val_acc_gohr = train_nets.train_neural_distinguisher(starting_round = max(1, highest_round-2),
-                                                                 data_generator = lambda num_samples, nr : make_train_data(encryption_function, plain_bits, key_bits, num_samples, nr, delta_plain, delta_key), model_name = 'gohr', input_size = plain_bits, word_size = word_size, log_prefix = f'{output_dir}/{s}_{hex(best_differences_int[idx])}', _epochs = epochs)
-        best_round_dbitnet, best_val_acc_dbitnet = train_nets.train_neural_distinguisher(starting_round = max(1, highest_round-2),
-                                                                 data_generator = lambda num_samples, nr : make_train_data(encryption_function, plain_bits, key_bits, num_samples, nr, delta_plain, delta_key), model_name = 'dbitnet', input_size = plain_bits, word_size = word_size, log_prefix = f'{output_dir}/{s}_{hex(best_differences_int[idx])}', _epochs = epochs)
-        with open(f'{output_dir}/{s}_{hex(best_differences_int[idx])}_final', 'a') as f:
-            f.write('Best difference, highest Gohr round, gohr val acc, highest dbitnet round, dbitnet val acc \n')
-            f.write(f'[({hex(best_differences_int[idx]>>key_bits)}, {hex(best_differences_int[idx]&(2**key_bits-1))})], {best_round_gohr}, {best_val_acc_gohr}, {best_round_dbitnet}, {best_val_acc_dbitnet}')
-
-
-
-
-if __name__ == "__main__":
+def parse_and_validate():
     ciphers_list = glob('ciphers/*.py')
     ciphers_list = [cipher[8:-3] for cipher in ciphers_list]
     scenarios_list = ['single-key', 'related-key']
     parser = argparse.ArgumentParser(description='Obtain good input differences for neural cryptanalysis.')
-    parser.add_argument('cipher', type=str, nargs=1,
+    parser.add_argument('cipher', type=str, nargs='?', default = 'speck3264',
             help=f'the name of the cipher to be analyzed, from the following list: {ciphers_list}')
-    parser.add_argument('scenario', type=str, nargs=1,
+    parser.add_argument('scenario', type=str, nargs='?',
             help=f'the scenario, either single-key or related-key', default = 'single-key')
-    parser.add_argument('-o', '--output', type=str, nargs=1, default ='results',
+    parser.add_argument('-o', '--output', type=str, nargs='?', default ='results',
             help=f'the folder where to store the experiments results')
     arguments = parser.parse_args()
-    cipher_to_study = arguments.cipher[0]
-    scenario = arguments.scenario[0]
-    output_dir = arguments.output[0]
-    if cipher_to_study not in ciphers_list:
+    cipher_name = arguments.cipher
+    scenario = arguments.scenario
+    output_dir = arguments.output
+    if cipher_name not in ciphers_list:
         raise Exception(f'Cipher name error: it has to be one of {ciphers_list}.')
     if scenario not in scenarios_list:
         raise Exception(f'Scenario name error: it has to be one of {scenarios_list}.')
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
-    print(f'Running the search for {cipher_to_study}, in the {scenario} scenario...')
-    runBestDifferenceSearchForCipher(cipher_to_study, scenario, output_dir)
+    return cipher_name, scenario, output_dir
+
+if __name__ == "__main__":
+    cipher_name, scenario, output_dir = parse_and_validate()
+    s = cipher_name + "_" + scenario
+    epsilon = 0.1
+    print("\n")
+    print("=" * 70)
+    print(f"PART 1: Finding the {epsilon}-close input differences and the `highest round` using the evolutionary optimizer for ", s, "...")
+    best_differences, highest_round = findGoodInputDifferences(cipher_name, scenario, output_dir, epsilon)
+    print(f'Found {len(best_differences)} {epsilon}-close differences: {[hex(x) for x in best_differences]}. \nThe highest round with a bias score above the threshold was {highest_round}. \nThe best differences and their scores for each round are stored under {output_dir}/{s}, and the full list of differences along with their weighted scores are stored under {output_dir}/{s}_best_weighted_differences.csv.')
+    print("=" * 70)
+    print(f"PART 2: Training DBitNet using the simple training pipeline...")
+    # Training the neural distinguisher, starting from two round before the last biased round detected by the optimizer
+    for input_difference in best_differences:
+        results = trainNeuralDistinguishers(cipher_name, scenario, output_dir, input_difference, max(1, highest_round-2), nets =['dbitnet'])

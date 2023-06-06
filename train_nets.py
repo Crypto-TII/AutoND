@@ -26,8 +26,8 @@ from keras.callbacks import ModelCheckpoint, LearningRateScheduler
 # ------------------------------------------------
 logging.basicConfig(level=logging.FATAL)
 
-ABORT_TRAINING_BELOW_ACC = 0.5015   # if the validation accuracy reaches or falls below this limit, abort further training.
-EPOCHS = 10                        # train for 10 epochs
+ABORT_TRAINING_BELOW_ACC = 0.505   # if the validation accuracy reaches or falls below this limit, abort further training.
+EPOCHS = 5                        # train for 10 epochs
 NUM_SAMPLES = 10**7                 # create 10 million training samples
 NUM_VAL_SAMPLES = 10**6             # create 1 million validation samples
 BATCHSIZE = 5000                    # training batch size
@@ -72,15 +72,14 @@ def train_one_round(model,
     else:
         callbacks = [checkpoint, LR_scheduler]
 
-        
+
 
     #------------------------------------------------
     # Train the model
     #------------------------------------------------
     history = model.fit(X, Y, epochs=epochs, batch_size=BATCHSIZE,
-                        validation_data=(X_val, Y_val), callbacks=callbacks,
-                        verbose=0)
-        
+                        validation_data=(X_val, Y_val), callbacks=callbacks)
+
 
 
     # save the training history
@@ -107,7 +106,7 @@ def train_neural_distinguisher(starting_round, data_generator, model_name, input
         model = make_gohrnet(2*input_size, word_size=word_size)
         lr = LearningRateScheduler(cyclic_lr(10,0.002, 0.0001));
         optimizer = 'adam'
-        
+
     model.compile(optimizer=optimizer, loss='mse', metrics=['acc'])
 
     #------------------------------------------------
@@ -128,7 +127,7 @@ def train_neural_distinguisher(starting_round, data_generator, model_name, input
         num_samples = NUM_SAMPLES
     else:
         num_samples = _num_samples
-        
+
     print(f'Training on {epochs} epochs ...')
     while True:
         # ------------------------------------------------
@@ -149,8 +148,8 @@ def train_neural_distinguisher(starting_round, data_generator, model_name, input
                                     log_prefix = log_prefix,
                                     model_name = model_name,
                                     LR_scheduler = lr)
-        print(f'{model_name} {current_round} {val_acc}')
-        
+        print(f'{model_name}, round {current_round}. Best validation accuracy: {val_acc}')
+
         # after the starting_round, load the weight files:
         load_weight_file = True
 

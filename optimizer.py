@@ -9,7 +9,7 @@ from timeit import default_timer as timer
 import numpy as np
 import pandas as pd
 
-NUM_GENERATIONS = 25     # 50 in the paper, set to 5 here for demonstration
+NUM_GENERATIONS = 5     # 50 in the paper, set to 5 here for demonstration
 NUM_SAMPLES = 10**3      # 10**4 in the paper. The number of samples used to compute the bias score
 
 def bitArrayToIntegers(arr):
@@ -135,7 +135,7 @@ def optimize(plain_bits, key_bits, encryption_function, nb_samples=NUM_SAMPLES, 
     allDiffs = None
     totalScores = {}
     diffs = None
-    T = 0.05
+    T = 0.05 # The bias score threshold
     current_round = 1
     if scenario == "single-key":
         bits_to_search = plain_bits
@@ -153,13 +153,10 @@ def optimize(plain_bits, key_bits, encryption_function, nb_samples=NUM_SAMPLES, 
         else:
             allDiffs = np.concatenate([allDiffs, diffs])
         current_round += 1
-        print(current_round, end = " ")
         if scores[-1] < T:
             break
-        #print(current_round, scores[-1])
 
-        # Reevaluate all differences for best round:
-    #print("Final : ", current_round)
+    # Reevaluate all differences for best round:
     finalScores = [None for i in range(current_round)]
     allDiffs = np.unique(allDiffs, axis=0)
     cumulativeScores = np.zeros(len(allDiffs))
@@ -175,19 +172,11 @@ def optimize(plain_bits, key_bits, encryption_function, nb_samples=NUM_SAMPLES, 
         cumulativeScores += np.array(finalScores[nr])
         weightedScores += nr*np.array(finalScores[nr])
 
-        #idx = np.arange(len(allDiffs))
-        #good = idx[np.argsort(finalScores[nr])]
-        #diffs = allDiffs[good]
-        #scores = finalScores[nr][good]
-
         result, _, _ = PrettyPrintBestNDifferences(allDiffs, finalScores[nr], 5, scenario, plain_bits, key_bits)
         resStr = f'Best at {nr}: \n{result}'
-        #resStr = f'Best at {nr} : \n {[hex(x) for x in bitArrayToIntegers(diffs)][-5:]}\n {scores.tolist()[-5:]} \n'
-        #print(resStr, flush = True)
         if log_file != None:
             with open(log_file, 'a') as f:
                 f.write(resStr)
-
 
     result, _, _ = PrettyPrintBestNDifferences(allDiffs, cumulativeScores, 5, scenario, plain_bits, key_bits)
     resStr = f'Best Cumulative: \n{result}'
@@ -196,14 +185,14 @@ def optimize(plain_bits, key_bits, encryption_function, nb_samples=NUM_SAMPLES, 
             f.write(resStr)
 
 
-   # result, diffs_as_binary, diffs_as_hex = PrettyPrintBestNDifferences(allDiffs, weightedScores, 1, scenario, plain_bits, key_bits)
-    result, diffs_as_binary, diffs_as_hex = PrettyPrintBestEpsilonCloseDifferences(allDiffs, weightedScores, epsilon, scenario, plain_bits, key_bits)
+    result, _, _ = PrettyPrintBestNDifferences(allDiffs, weightedScores, 5, scenario, plain_bits, key_bits)
     resStr = f'Best Weighted: \n{result}'
     if log_file != None:
         with open(log_file, 'a') as f:
             f.write(resStr)
 
+    result, diffs_as_binary, diffs_as_hex = PrettyPrintBestEpsilonCloseDifferences(allDiffs, weightedScores, epsilon, scenario, plain_bits, key_bits)
     df = DataframeFromSortedDifferences(allDiffs, weightedScores, scenario, plain_bits, key_bits)
     df.to_csv(f'{log_file}_best_weighted_differences.csv')
-    return(diffs_as_binary, diffs_as_hex, current_round)
+    return(diffs_as_hex, current_round)
 
