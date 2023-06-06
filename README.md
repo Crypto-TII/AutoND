@@ -2,7 +2,8 @@
 
 ## Note 
 In our manuscript we present results on SPECK32, SPECK64, SPECK128, SIMON32, SIMON64, SIMON128, GIMLI, HIGHT, LEA, TEA, XTEA, PRESENT and KATAN.
-The SPECK implementation is strongly inspired by that of Gohr (https://github.com/agohr/deep_speck).
+The SPECK implementation is adapted from that of Gohr (https://github.com/agohr/deep_speck), and the contents of the train_nets.py from the same repo
+served as a base for gohrnet.py. 
 
 ## Demo for SPECK32
 Please run the code by executing 
@@ -22,15 +23,37 @@ The best differences and their scores for each round are stored under results/sp
 PART 2: Training DBitNet using the simple training pipeline...
 Training dbitnet for input difference 0x400000, starting from round 5...
 Training on 10 epochs ...
-Epoch 1/10
-2000/2000 [==============================] - 34s 17ms/step - loss: 0.2510 - acc: 0.5082 - val_loss: 0.2506 - val_acc: 0.5115
-Epoch 2/10
-2000/2000 [==============================] - 33s 17ms/step - loss: 0.2504 - acc: 0.5128 - val_loss: 0.2503 - val_acc: 0.5113...
-dbitnet, round 5. Best validation accuracy: 0.912000024318695
+2000/2000 [==============================] - 113s 54ms/step - loss: 0.1203 - acc: 0.8486 - val_loss: 0.0889 - val_acc: 0.8867
+Epoch 2/5
+2000/2000 [==============================] - 110s 55ms/step - loss: 0.0828 - acc: 0.8957 - val_loss: 0.0730 - val_acc: 0.9095
+Epoch 3/5
+2000/2000 [==============================] - 110s 55ms/step - loss: 0.0717 - acc: 0.9108 - val_loss: 0.0661 - val_acc: 0.9167
+Epoch 4/5
+2000/2000 [==============================] - 111s 55ms/step - loss: 0.0657 - acc: 0.9171 - val_loss: 0.0650 - val_acc: 0.9174
+Epoch 5/5
+2000/2000 [==============================] - 110s 55ms/step - loss: 0.0648 - acc: 0.9176 - val_loss: 0.0646 - val_acc: 0.9177
+dbitnet, round 5. Best validation accuracy: 0.9176750183105469
 ...
-dbitnet, round 9. Best validation accuracy: 0.5006360039710999
-{'Difference': '0x400000', 'dbitnet': {'Best round': 8, 'Validation accuracy': 0.5120000243186951}}
+dbitnet, round 6. Best validation accuracy: 0.7640489935874939
+...
+dbitnet, round 7. Best validation accuracy: 0.6031960248947144
+...
+dbitnet, round 8. Best validation accuracy: 0.507686972618103
+...
+Epoch 1/5
+2000/2000 [==============================] - 110s 55ms/step - loss: 0.2502 - acc: 0.5000 - val_loss: 0.2505 - val_acc: 0.5003
+Epoch 2/5
+2000/2000 [==============================] - 109s 55ms/step - loss: 0.2502 - acc: 0.5012 - val_loss: 0.2501 - val_acc: 0.5003
+Epoch 3/5
+2000/2000 [==============================] - 109s 55ms/step - loss: 0.2501 - acc: 0.5022 - val_loss: 0.2501 - val_acc: 0.5003
+Epoch 4/5
+2000/2000 [==============================] - 109s 55ms/step - loss: 0.2501 - acc: 0.5027 - val_loss: 0.2502 - val_acc: 0.4998
+Epoch 5/5
+2000/2000 [==============================] - 109s 55ms/step - loss: 0.2501 - acc: 0.5032 - val_loss: 0.2501 - val_acc: 0.4996
+dbitnet, round 9. Best validation accuracy: 0.5003229975700378
+{'Difference': '0x400000', 'dbitnet': {'Best round': 8, 'Validation accuracy': 0.507686972618103}}
 ```
+
 In the first part, the evolutionary algorithm returns the input differences that scored within 10% of the optimal score (epsilon = 0.1). 
 Here, only one was found: 0x400000. A bias was found up to round 7, and all the explored differences were stored in the indicated files.
 
@@ -78,7 +101,7 @@ The results/speck3264_single-key_best_weighted_differences.csv file is a csv fil
 97,{'0x400000'},{3.4593}
 ```
 
-### Test other ciphers
+### Testing other ciphers
 The ciphers folder contains all the supported primitives. The format is: 
 ```bash
 python3 main.py [cipher] [model] 
@@ -90,13 +113,23 @@ python3 main.py present80 single-key
 ```
 Please consider increasing the number of generations `NUM_GENERATIONS` and number of epochs `EPOCHS` parameters as discussed [below](#reproduce-results-from-table-5-and-6-in-the-manuscript).
 
-## Reproduce results from table 5 and 6 in the manuscript
+## Reproducing the results from the manuscript
 For demonstration purposes, the settings in the provided code are reduced to 
 ```python
 NUM_GENERATIONS = 5 # 50 in the paper, set to 5 here for demonstration in optimizer.py
 EPOCHS = 5          # 10 to 40 in the paper, set to 5 here for demonstration in train_nets.py
 ```
 Please set them to the original values to reproduce the values obtained in the manuscript. 
+
+In order to run Gohr's resnet, using our simple training pipeline, the trainNeuralDistinguishers function from main.py can be called with the corresponding argument:
+```python
+results = trainNeuralDistinguishers(cipher_name, scenario, output_dir, input_difference, max(1, highest_round-2), nets =['gohr'])
+```
+
+To run both models sequentially, one may call:
+```python
+results = trainNeuralDistinguishers(cipher_name, scenario, output_dir, input_difference, max(1, highest_round-2), nets =['gohr, dbitnet'])
+```
 
 ## Adding a new cipher
 Additional ciphers can be added following the template of e.g. `present.py`. The cipher file must include:
@@ -110,7 +143,6 @@ An encryption function, which takes as input numpy binary matrices, with one row
 ```python
 def encrypt(p, k, r):
 ```
-
 
 ## Prerequisites
 The code execution relies on standard Python modules, except for `tensorflow`.
