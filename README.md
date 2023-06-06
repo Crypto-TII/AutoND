@@ -117,6 +117,7 @@ Please consider increasing the number of generations `NUM_GENERATIONS` and numbe
 For demonstration purposes, the settings in the provided code are reduced to 
 ```python
 NUM_GENERATIONS = 5 # 50 in the paper, set to 5 here for demonstration in optimizer.py
+NUM_SAMPLES = 10**3 # 10**4 in the paper, set to 5 here for demonstration in optimizer.py
 EPOCHS = 5          # 10 to 40 in the paper, set to 5 here for demonstration in train_nets.py
 ```
 Please set them to the original values to reproduce the values obtained in the manuscript. 
