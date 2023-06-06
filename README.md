@@ -7,87 +7,86 @@ The SPECK implementation is strongly inspired by that of Gohr (https://github.co
 ## Demo for SPECK32
 Please run the code by executing 
 ```bash
-python main.py speck3264 single-key
+python main.py
 ```
 The output should be similar to the following: 
 
 ```bash
 ======================================================================
-PART 1: Find the `best input difference` and the `highest round` using the evolutionary optimizer...
-Generation 0/5, 528 nodes explored, 32 current, best is ['0x222d802', ..., '0x46c9c00'] with [0.2751875 ... 0.325375 ]
-Generation 1/5, 1024 nodes explored, 32 current, best is ['0xf02337e0', ..., '0x44e9c00'] with [0.3186875 ...  0.34425  ]
-...
-Final :  6
-```
-This output shows the search process, where the current best few differences and their scores are displayed at each generation, for each round. 
-`Final 6` means that the search ended at round 6 (because more rounds don't appear to be biased).
+PART 1: Finding the 0.1-close input differences and the `highest round` using the evolutionary optimizer for  speck3264_single-key ...
+Found 1 0.1-close differences: ['0x400000'].
+The highest round with a bias score above the threshold was 7.
+The best differences and their scores for each round are stored under results/speck3264_single-key, and the full list of differences along with their weighted scores are stored under results/speck3264_single-key_best_weighted_differences.csv.
 
-```bash
-Best at 1 : 
- ['0xd729a02d', '0x4671800d', ..., '0x400000']
- [0.14318750000000005, 0.20981249999999999, ..., , 0.5]
-...
-Best at 5 : 
- ['0x44e9c00', '0x8001010', ..., '0x400000']
-[0.009593750000000009, 0.009812500000000005, ..., 0.06493750000000001]
-```
-This output shows the best differences for each round and their scores, ranked from bad to good. 
-
-```bash
-Best Weighted : 
- ['0xd729a02d', '0x4671800d', ..., , '0x400000']
-[0.34765625000000017, 0.42078125000000016,... , 3.31446875]
-```
-The final output bit is the weighted scores (sum of the scores at each round times the round number). The best difference overall is the last one in the best weighted list.
-
-The best difference and the highest round found by the evolutionary optimizer are passed to the neural network distinguisher. 
-The training progress for each round of the staged training is shown.
-```bash
 ======================================================================
-PART 2: Train DBitNet using staged training  
-INFO:root:CREATE NEURAL NETWORK MODEL.
-INFO:root:determined cipher input size = 64
-INFO:root:CREATE DATA for round 5...
-INFO:root:TRAIN neural network for round 5...
-Epoch 1/40
-2000/2000 [==============================] - 39s 17ms/step - loss: 0.0999 - acc: 0.8725 - val_loss: 0.0894 - val_acc: 0.8859
-...
-Best validation accuracy:  0.9282900094985962
-INFO:root:CREATE DATA for round 6...
-INFO:root:TRAIN neural network for round 6...
-Epoch 1/40
-2000/2000 [==============================] - 34s 17ms/step - loss: 0.1524 - acc: 0.7807 - val_loss: 0.1505 - val_acc: 0.7831
-...
-Best validation accuracy:  0.7862939834594727
-INFO:root:CREATE DATA for round 7...
-INFO:root:TRAIN neural network for round 7...
-Epoch 1/40
-2000/2000 [==============================] - 34s 17ms/step - loss: 0.2350 - acc: 0.6054 - val_loss: 0.2334 - val_acc: 0.6092
-...
-Best validation accuracy:  0.6146360039710999
-INFO:root:CREATE DATA for round 8...
-INFO:root:TRAIN neural network for round 8...
-Epoch 1/40
+PART 2: Training DBitNet using the simple training pipeline...
+Training dbitnet for input difference 0x400000, starting from round 5...
+Training on 10 epochs ...
+Epoch 1/10
 2000/2000 [==============================] - 34s 17ms/step - loss: 0.2510 - acc: 0.5082 - val_loss: 0.2506 - val_acc: 0.5115
-Epoch 2/40
-2000/2000 [==============================] - 33s 17ms/step - loss: 0.2504 - acc: 0.5128 - val_loss: 0.2503 - val_acc: 0.5113
-Epoch 3/40
-2000/2000 [==============================] - 33s 17ms/step - loss: 0.2501 - acc: 0.5142 - val_loss: 0.2503 - val_acc: 0.5102
+Epoch 2/10
+2000/2000 [==============================] - 33s 17ms/step - loss: 0.2504 - acc: 0.5128 - val_loss: 0.2503 - val_acc: 0.5113...
+dbitnet, round 5. Best validation accuracy: 0.912000024318695
 ...
-Best validation accuracy:  0.5114840269088745
-INFO:root:CREATE DATA for round 9...
-INFO:root:TRAIN neural network for round 9...
-...
-INFO:root:ABORT TRAINING (best validation accuracy <= 50.5)
+dbitnet, round 9. Best validation accuracy: 0.5006360039710999
+{'Difference': '0x400000', 'dbitnet': {'Best round': 8, 'Validation accuracy': 0.5120000243186951}}
 ```
-The training is aborted in the round where the best validation accuracy falls below 50.5%. 
+In the first part, the evolutionary algorithm returns the input differences that scored within 10% of the optimal score (epsilon = 0.1). 
+Here, only one was found: 0x400000. A bias was found up to round 7, and all the explored differences were stored in the indicated files.
 
-### Test SPECK64 or SPECK128
-Please change `main.py` accordingly, e.g. for SPECK64: 
-```python
-#import speck3264 as cipher
-import speck64128 as cipher
-#import speck128256 as cipher
+In the second part, DBitNet is trained iteratively, according to our simple training pipeline, on all the input differences returned by part 1 (here, only 0x400000). After each round, the validation
+accuracy is displayed. The training history, trained networks and final results are stored under results. The best significant distinguisher was trained for 8 rounds, with an accuracy of 0.51.
+
+The results/speck3264_single-key file should look as follows:
+```bash
+New log start, reached round 6
+Best at 1:
+[0x4000, 0.4693]
+[0x40c000, 0.4693]
+[0x400000, 0.5]
+[0x8000, 0.5]
+[0x408000, 0.5]
+...
+Best at 6:
+[0x302000, 0.0195]
+[0x200000, 0.0196]
+[0x702000, 0.0199]
+[0x102000, 0.0211]
+[0x400000, 0.0225]
+Best Cumulative:
+[0x102000, 1.2522]
+[0x600000, 1.2539]
+[0x200000, 1.2615]
+[0x408000, 1.4173]
+[0x400000, 1.5091]
+Best Weighted:
+[0x600000, 2.6753]
+[0x200000, 2.7175]
+[0x102000, 2.7579]
+[0x408000, 3.0846]
+[0x400000, 3.4593]
+```
+This output shows the best differences for each round and their scores, sorted. 
+
+The results/speck3264_single-key_best_weighted_differences.csv file is a csv file contatining the weighted scores of all the differences explored during the search:
+```bash
+,Difference,Weighted score
+0,{'0x9c1d528'},{0.4273}
+1,{'0x882804c2'},{0.4289}
+...
+96,{'0x408000'},{3.0846}
+97,{'0x400000'},{3.4593}
+```
+
+### Test other ciphers
+The ciphers folder contains all the supported primitives. The format is: 
+```bash
+python3 main.py [cipher] [model] 
+```
+cipher is a cipher name from the ciphers folder, and mode is 'single-key' or 'related-key'.
+For instance, to run the tool on present in the related-key model:
+```bash
+python3 main.py present80 single-key
 ```
 Please consider increasing the number of generations `NUM_GENERATIONS` and number of epochs `EPOCHS` parameters as discussed [below](#reproduce-results-from-table-5-and-6-in-the-manuscript).
 
@@ -95,18 +94,23 @@ Please consider increasing the number of generations `NUM_GENERATIONS` and numbe
 For demonstration purposes, the settings in the provided code are reduced to 
 ```python
 NUM_GENERATIONS = 5 # 50 in the paper, set to 5 here for demonstration in optimizer.py
-EPOCHS = 5          # 40 in the paper, set to 5 here for demonstration in train_nets.py
+EPOCHS = 5          # 10 to 40 in the paper, set to 5 here for demonstration in train_nets.py
 ```
-Please set them to the original values to reproduce the values obtained in the manuscript. For SPECK32 the demonstration settings should still reach round 8 with 50.9% validation accuracy.
+Please set them to the original values to reproduce the values obtained in the manuscript. 
 
 ## Adding a new cipher
-Please create a `mycipher.py` Python file with the structure as shown in e.g. `speck3264.py`. Modify `main.py` accordingly:
+Additional ciphers can be added following the template of e.g. `present.py`. The cipher file must include:
+The parameter variables:
 ```python
-#import speck3264 as cipher
-#import speck64128 as cipher
-#import speck128256 as cipher
-import mycipher as cipher
+plain_bits = 64
+key_bits = 80
+word_size = 4
 ```
+An encryption function, which takes as input numpy binary matrices, with one row per sample, representing respectively the plaintext and the key, and the number of rounds:
+```python
+def encrypt(p, k, r):
+```
+
 
 ## Prerequisites
 The code execution relies on standard Python modules, except for `tensorflow`.
