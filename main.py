@@ -85,7 +85,7 @@ def trainNeuralDistinguishers(cipher_name, scenario, output_dir, input_differenc
     with open(f'{output_dir}/{s}_{hex(input_difference)}_final', 'a') as f:
         f.write(diff_str)
         for net in nets:
-            f.write(f'{net} : {results[net]["Best round"]}, {results[net]["Validation accuracy"]}')
+            f.write(f'{net} : {results[net]["Best round"]}, {results[net]["Validation accuracy"]}\n')
     print(results)
     return results
 

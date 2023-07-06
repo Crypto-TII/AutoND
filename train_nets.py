@@ -20,13 +20,15 @@ import numpy as np
 from dbitnet import make_model as make_dbitnet
 from gohrnet import make_model as make_gohrnet
 from keras.callbacks import ModelCheckpoint, LearningRateScheduler
+from keras.optimizers import Adam
+
 
 # ------------------------------------------------
 # Configuration and constants
 # ------------------------------------------------
 logging.basicConfig(level=logging.FATAL)
 
-ABORT_TRAINING_BELOW_ACC = 0.505   # if the validation accuracy reaches or falls below this limit, abort further training.
+ABORT_TRAINING_BELOW_ACC = 0.5025   # if the validation accuracy reaches or falls below this limit, abort further training.
 EPOCHS = 5                        # train for 10 epochs
 NUM_SAMPLES = 10**7                 # create 10 million training samples
 NUM_VAL_SAMPLES = 10**6             # create 1 million validation samples
@@ -78,7 +80,7 @@ def train_one_round(model,
     # Train the model
     #------------------------------------------------
     history = model.fit(X, Y, epochs=epochs, batch_size=BATCHSIZE,
-                        validation_data=(X_val, Y_val), callbacks=callbacks)
+                        validation_data=(X_val, Y_val), callbacks=callbacks, verbose = 0)
 
 
 
@@ -106,6 +108,9 @@ def train_neural_distinguisher(starting_round, data_generator, model_name, input
         model = make_gohrnet(2*input_size, word_size=word_size)
         lr = LearningRateScheduler(cyclic_lr(10,0.002, 0.0001));
         optimizer = 'adam'
+    elif model_name == 'gohr_amsgrad':
+        model = make_gohrnet(2*input_size, word_size=word_size)
+        optimizer = Adam(amsgrad=True)
 
     model.compile(optimizer=optimizer, loss='mse', metrics=['acc'])
 
@@ -148,7 +153,7 @@ def train_neural_distinguisher(starting_round, data_generator, model_name, input
                                     log_prefix = log_prefix,
                                     model_name = model_name,
                                     LR_scheduler = lr)
-        print(f'{model_name}, round {current_round}. Best validation accuracy: {val_acc}')
+        print(f'{model_name}, round {current_round}. Best validation accuracy: {val_acc}', flush=True)
 
         # after the starting_round, load the weight files:
         load_weight_file = True
