@@ -28,8 +28,8 @@ from keras.optimizers import Adam
 # ------------------------------------------------
 logging.basicConfig(level=logging.FATAL)
 
-ABORT_TRAINING_BELOW_ACC = 0.5025   # if the validation accuracy reaches or falls below this limit, abort further training.
-EPOCHS = 5                        # train for 10 epochs
+ABORT_TRAINING_BELOW_ACC = 0.505   # if the validation accuracy reaches or falls below this limit, abort further training.
+EPOCHS = 10                        # train for 10 epochs
 NUM_SAMPLES = 10**7                 # create 10 million training samples
 NUM_VAL_SAMPLES = 10**6             # create 1 million validation samples
 BATCHSIZE = 5000                    # training batch size
@@ -80,7 +80,7 @@ def train_one_round(model,
     # Train the model
     #------------------------------------------------
     history = model.fit(X, Y, epochs=epochs, batch_size=BATCHSIZE,
-                        validation_data=(X_val, Y_val), callbacks=callbacks, verbose = 0)
+                        validation_data=(X_val, Y_val), callbacks=callbacks, verbose = 2)
 
 
 
