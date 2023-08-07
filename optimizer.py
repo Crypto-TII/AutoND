@@ -147,7 +147,7 @@ def optimize(plain_bits, key_bits, encryption_function, nb_samples=NUM_SAMPLES, 
         C0 = encryption_function(pt0, keys0, current_round)
         #diffs, scores = evo(f=lambda x: evaluate_multiple_differences(x, pt0, keys0, C0, current_round, plain_bits, key_bits, encryption_function), num_bits = bits_to_search, L=32, gen=None)
         # The initial set of differences can be set to None, or to the differences returned for the previous round. We use the second option here, as opposed to the first (above) in the paper.
-        diffs, scores = evo(f=lambda x: evaluate_multiple_differences(x, pt0, keys0, C0, current_round, plain_bits, key_bits, encryption_function, scenario=scenario), num_bits = bits_to_search, L=32, gen=diffs)
+        diffs, scores = evo(f=lambda x: evaluate_multiple_differences(x, pt0, keys0, C0, current_round, plain_bits, key_bits, encryption_function, scenario=scenario), num_bits = bits_to_search, L=32, gen=diffs, verbose = 1)
         if allDiffs is None:
             allDiffs = diffs
         else:
