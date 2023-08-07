@@ -147,9 +147,38 @@ def encrypt(p, k, r):
 
 ## Evaluate an existing model on fresh test datasets
 To evaluate an existing model with weights stored in `modelpath` on fresh test datasets, please run, for example
+For example, running 
+
 ```bash
-python AutoND/eval_nets.py --model_path 'AutoND/model_weights/speck3264_single-key_0x400000_round8_polished.h5' \
+python AutoND/eval_nets.py --model_path 'AutoND/model_weights/speck3264_single-key_0x400000_round8_polished.h5'\
 --model_type 'dbitnet' --cipher 'speck3264' --input_difference '0x400000' --round_number '8'
+```
+results in 
+```bash
+INFO:root:Creating model 'dbitnet' with weights from path 
+	 'AutoND/model_weights/speck3264_single-key_0x400000_round8_polished.h5'...
+INFO:root:Creating new validation dataset for 
+                        cipher: speck3264, 
+                        scenario: single-key, 
+                        input difference: 0x400000, 
+                        round number: 8, 
+                        cipher.plain_bits: 32, 
+                        cipher.key_bits: 64
+                        ...
+INFO:root:Running evaluations...
+INFO:root:	 acc=0.5143 	 tpr=0.5119 	 tnr=0.5168
+INFO:root:	 acc=0.5145 	 tpr=0.5138 	 tnr=0.5152
+INFO:root:	 acc=0.5143 	 tpr=0.5125 	 tnr=0.5162
+INFO:root:	 acc=0.5146 	 tpr=0.5120 	 tnr=0.5173
+INFO:root:	 acc=0.5139 	 tpr=0.5119 	 tnr=0.5159
+INFO:root:Saving results to AutoND/model_weights/speck3264_single-key_0x400000_round8_polished_eval.npz
+```
+and loading the results via numpy and computing the mean and standard deviation yields the accuracy from our manuscript: 
+```
+import numpy  as np
+data = np.load('AutoND/model_weights/speck3264_single-key_0x400000_round8_polished_eval.npz')
+print(f"{np.mean(data['accs']):.4f} +- {np.std(data['accs']):.4f}")
+>>> 0.5144 +- 0.0003
 ```
 
 ## Prerequisites
