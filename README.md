@@ -145,6 +145,12 @@ An encryption function, which takes as input numpy binary matrices, with one row
 def encrypt(p, k, r):
 ```
 
+## Evaluate an existing model on fresh test datasets
+To evaluate an existing model with weights stored in `modelpath` on fresh test datasets, please run
+```bash
+python AutoND/eval_nets.py --model_path 'your/path/*.h5' --model_type 'dbitnet' --cipher 'simon3264' --input_difference '0x400' --round_number '11'
+```
+
 ## Prerequisites
 The code execution relies on standard Python modules, except for `tensorflow`.
 If you start from an empty Python Anaconda environment, the following installation should be sufficient: 
