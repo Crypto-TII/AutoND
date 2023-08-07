@@ -150,7 +150,7 @@ To evaluate an existing model with weights stored in `modelpath` on fresh test d
 For example, running 
 
 ```bash
-python AutoND/eval_nets.py --model_path 'AutoND/model_weights/speck3264_single-key_0x400000_round8_polished.h5'\
+python AutoND/eval_nets.py --model_path 'AutoND/model_weights/speck3264_single-key_0x400000_round8_polished.h5' \
 --model_type 'dbitnet' --cipher 'speck3264' --input_difference '0x400000' --round_number '8'
 ```
 results in 
@@ -179,6 +179,23 @@ import numpy  as np
 data = np.load('AutoND/model_weights/speck3264_single-key_0x400000_round8_polished_eval.npz')
 print(f"{np.mean(data['accs']):.4f} +- {np.std(data['accs']):.4f}")
 >>> 0.5144 +- 0.0003
+```
+
+Similarly, running
+```bash
+python AutoND/eval_nets.py --model_path "AutoND/model_weights/simon3264_single-key_0x400_round11_polished.h5" \
+--model_type 'dbitnet' --cipher 'simon3264' --input_difference '0x400' --round_number '11'
+```
+yields 
+```
+INFO:root:Running evaluations...
+INFO:root:	 acc=0.5185 	 tpr=0.4780 	 tnr=0.5591
+INFO:root:	 acc=0.5183 	 tpr=0.4780 	 tnr=0.5586
+INFO:root:	 acc=0.5183 	 tpr=0.4766 	 tnr=0.5598
+INFO:root:	 acc=0.5185 	 tpr=0.4781 	 tnr=0.5590
+INFO:root:	 acc=0.5176 	 tpr=0.4774 	 tnr=0.5579
+...
+>>> 0.5182 +- 0.0004
 ```
 
 ## Prerequisites
