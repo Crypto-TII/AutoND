@@ -146,9 +146,10 @@ def encrypt(p, k, r):
 ```
 
 ## Evaluate an existing model on fresh test datasets
-To evaluate an existing model with weights stored in `modelpath` on fresh test datasets, please run
+To evaluate an existing model with weights stored in `modelpath` on fresh test datasets, please run, for example
 ```bash
-python AutoND/eval_nets.py --model_path 'your/path/*.h5' --model_type 'dbitnet' --cipher 'simon3264' --input_difference '0x400' --round_number '11'
+python AutoND/eval_nets.py --model_path 'AutoND/model_weights/speck3264_single-key_0x400000_round8_polished.h5' \
+--model_type 'dbitnet' --cipher 'speck3264' --input_difference '0x400000' --round_number '8'
 ```
 
 ## Prerequisites
