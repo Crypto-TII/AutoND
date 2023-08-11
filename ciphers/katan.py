@@ -93,6 +93,7 @@ def convert_from_binary(arr, _dtype=np.uint64):
 
 
 def check_testvectors():
+    # From https://github.com/differential-neural/An-Assessment-of-Differential-Neural-Distinguishers/blob/main/cipher/katan.py
     p = np.zeros((2, plain_bits), dtype = np.uint8)
     p[1]^=1
     k = np.zeros((2, key_bits), dtype = np.uint8)
