@@ -35,8 +35,8 @@ def expand_key(K, t):
 
 
 def encrypt(p, k, r):
-    P = convert_from_binary(p).byteswap(inplace=True).transpose()
-    K = convert_from_binary(k).byteswap(inplace=True).transpose()
+    P = convert_from_binary(p).byteswap().transpose()
+    K = convert_from_binary(k).byteswap().transpose()
     ks = expand_key(K, r)
     i = 0
     for i in range(r):
@@ -46,7 +46,7 @@ def encrypt(p, k, r):
         P[0] = rol(((p0^k0)+(p1^k1)) & MASK_VAL, 9)
         P[1] = ror(((p1^k2)+(p2^k3)) & MASK_VAL, 5)
         P[2] = ror(((p2^k4)+(p3^k5)) & MASK_VAL, 3)
-    return(convert_to_binary(P.byteswap(inplace=True)));
+    return(convert_to_binary(P.byteswap()));
 
 
 def convert_to_binary(arr):
