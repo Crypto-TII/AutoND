@@ -46,7 +46,7 @@ def encrypt(p, k, r):
         P[0] = rol(((p0^k0)+(p1^k1)) & MASK_VAL, 9)
         P[1] = ror(((p1^k2)+(p2^k3)) & MASK_VAL, 5)
         P[2] = ror(((p2^k4)+(p3^k5)) & MASK_VAL, 3)
-    return(convert_to_binary(P));
+    return(convert_to_binary(P.byteswap(inplace=True)));
 
 
 def convert_to_binary(arr):
@@ -75,8 +75,8 @@ def check_testvectors():
   e = np.array([0x9fc84e35, 0x28c6c618, 0x5532c7a7, 0x04648bfd], dtype = np.uint32)
   pb = convert_to_binary(p)
   kb = convert_to_binary(k)
-  c = convert_from_binary(encrypt(pb, kb, 24)).byteswap(inplace=True)
+  assert(np.all(convert_from_binary(convert_to_binary(p)) == p.transpose()))
+  c = convert_from_binary(encrypt(pb, kb, 24))
   assert np.all(c[0] == e)
 
 check_testvectors()
-
