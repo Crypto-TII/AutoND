@@ -61,14 +61,13 @@ def get_deltas_from_scenario(scenario, input_difference, plain_bits, key_bits):
     """Returns delta_plain, delta_key for the scenario."""
     if scenario == "related-key":
         delta = autond.integer_to_binary_array(input_difference, plain_bits + key_bits)
-        delta_key = delta[plain_bits:]
-        delta_plain = 0
+        delta_key = delta[:, plain_bits:]
     elif scenario == "single-key":
         delta = autond.integer_to_binary_array(input_difference, plain_bits)
         delta_key = 0
-        delta_plain = delta[:plain_bits]
     else:
         raise ValueError(f"An unknown scenario '{scenario}' was encountered.")
+    delta_plain = delta[:, :plain_bits]
     return delta_plain, delta_key
 
 def parseTheCommandLine(parser):
