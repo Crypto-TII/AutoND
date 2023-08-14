@@ -19,8 +19,8 @@ import pandas as pd
 import numpy as np
 from dbitnet import make_model as make_dbitnet
 from gohrnet import make_model as make_gohrnet
-from keras.callbacks import ModelCheckpoint, LearningRateScheduler
-from keras.optimizers import Adam
+from tensorflow.keras.callbacks import ModelCheckpoint, LearningRateScheduler
+from tensorflow.keras.optimizers import Adam
 
 
 # ------------------------------------------------
