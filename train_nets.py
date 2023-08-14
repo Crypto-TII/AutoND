@@ -167,6 +167,12 @@ def train_neural_distinguisher(starting_round, data_generator, model_name, input
             best_round = current_round
             best_val_acc = val_acc
             current_round += 1
+            
+        # free the memory  
+        del X
+        del Y
+        del X_val
+        del Y_val
         tf.keras.backend.clear_session()
 
     return best_round, best_val_acc
