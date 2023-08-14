@@ -53,15 +53,14 @@ def trainNeuralDistinguishers(cipher_name, scenario, output_dir, input_differenc
     encryption_function = cipher.encrypt
     if scenario == "related-key":
         delta = integer_to_binary_array(input_difference, plain_bits+key_bits)
-        delta_key = delta[plain_bits:]
-        diff_str = f'[{hex(input_difference>>key_bits)}, {hex(input_difference&(2**key_bits-1))}]'
+        delta_key = delta[:, plain_bits:]
     else:
         delta = integer_to_binary_array(input_difference, plain_bits)
         delta_key = 0
-        delta_plain = delta[:plain_bits]
-        diff_str = hex(input_difference)
-
+    delta_plain = delta[:, :plain_bits]
+    diff_str = hex(input_difference)
     results = {}
+
     if cipher_name == 'chacha':
         input_size = 512
     else:
