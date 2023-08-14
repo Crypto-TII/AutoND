@@ -101,66 +101,58 @@ HIGHT_F1 = np.array(HIGHT_F1, dtype = np.uint8)
 
 # keylen = 16
 def key_schedule(key):
-    round_key = [0] * 136
+    RK = [0] * 128
+    WK = [0] * 8
     for i in range(4):
-        round_key[i] = key[i+12]
-        round_key[i+4] = key[i]
+        WK[i] = key[i+12]
+        WK[i+4] = key[i]
 
     for i in range(8):
         for j in range(8):
-            round_key[8+16*i+j] = (key[(j-i)&7] + DELTA[16*i+j]) & 0xFF
+            RK[16*i+j] =   key[(j-i)&7] + DELTA[16*i+j]
         for j in range(8):
-            round_key[8+16*i+j+8] = (key[(j-i)&7+8] + DELTA[16*i+j+8]) & 0xFF
+            RK[16*i+j+8] = key[((j-i)&7) + 8] + DELTA[16*i+j+8]
 
-    return round_key
+    return WK, RK
 
-def round_enc(round_key, pt, k, i0, i1, i2, i3, i4, i5, i6, i7):
-    # print(type(pt[i1]), pt[i1])
-    pt[i0] = (pt[i0] ^ (HIGHT_F0[pt[i1]] + round_key[4*k+3])) & 0xFF
-    pt[i2] = (pt[i2] + (HIGHT_F1[pt[i3]] ^ round_key[4*k+2])) & 0xFF
-    pt[i4] = (pt[i4] ^ (HIGHT_F0[pt[i5]] + round_key[4*k+1])) & 0xFF
-    pt[i6] = (pt[i6] + (HIGHT_F1[pt[i7]] ^ round_key[4*k+0])) & 0xFF
-    return pt
+def round_enc(round_key, pt, k):
+    X = pt.copy()
+    X[1] = X[0]; X[3] = X[2]; X[5] = X[4]; X[7] = X[6]
+    X[0] = (pt[7] ^ (HIGHT_F0[pt[6]] + round_key[4*k+3])) 
+    X[2] = (pt[1] + (HIGHT_F1[pt[0]] ^ round_key[4*k])) 
+    X[4] = (pt[3] ^ (HIGHT_F0[pt[2]] + round_key[4*k+1])) 
+    X[6] = (pt[5] + (HIGHT_F1[pt[4]] ^ round_key[4*k+2])) 
+    return X
 
 # blocklen = 8
 def encrypt(p, k, rounds):
-    p = convert_from_binary(p)
-    k = convert_from_binary(k)
-    key = [0] * 16
-    pt = [0] * 8
+    pt = np.flip(convert_from_binary(p).transpose(), axis = 0)
+    key = np.flip(convert_from_binary(k).transpose(), axis = 0)
+    whitening_key, round_key = key_schedule(key)
 
-    for i in range(8):
-        pt[i] = p[:, i]
-    for i in range(16):
-        key[i] = k[:, i]
+    # Initial transformation
+    pt[0] = (pt[0] + whitening_key[0]) 
+    pt[2] = (pt[2] ^ whitening_key[1])
+    pt[4] = (pt[4] + whitening_key[2]) 
+    pt[6] = (pt[6] ^ whitening_key[3])
 
-    round_key = key_schedule(key)
 
-    # round 0
-    pt[0] = (pt[0] + round_key[0]) & 0xFF
-    pt[2] = (pt[2] ^ round_key[1])
-    pt[4] = (pt[4] + round_key[2]) & 0xFF
-    pt[6] = (pt[6] ^ round_key[3])
-
-    idxs = [7, 6, 5, 4, 3, 2, 1, 0]
-
-    for i in range(1, rounds):
-        pt = round_enc(round_key, pt, i+1, *idxs)
-        idxs = idxs[1:] + [idxs[0]]
-
+    for i in range(rounds-1):
+        pt = round_enc(round_key, pt, i)
+        
     # final round
-    out = copy.deepcopy(pt)
-    out[1] = (pt[2])
-    out[3] = (pt[4])
-    out[5] = (pt[6])
-    out[7] = (pt[0])
+    X = pt.copy()
+    X[1] = pt[1] + (HIGHT_F1[pt[0]] ^ round_key[(rounds -1) * 4])
+    X[3] = pt[3] ^ (HIGHT_F0[pt[2]] + round_key[(rounds -1) * 4 + 1])
+    X[5] = pt[5] + (HIGHT_F1[pt[4]] ^ round_key[(rounds -1) * 4 + 2])
+    X[7] = pt[7] ^ (HIGHT_F0[pt[6]] + round_key[(rounds -1) * 4 + 3])
+    X[0] += whitening_key[4]
+    X[2] ^= whitening_key[5]
+    X[4] += whitening_key[6]
+    X[6] ^= whitening_key[7]
 
-    out[0] = (pt[1] + round_key[4]) & 0xFF
-    out[2] = (pt[3] ^ round_key[5])
-    out[4] = (pt[5] + round_key[6]) & 0xFF
-    out[6] = (pt[7] ^ round_key[7])
 
-    return convert_to_binary(out)
+    return convert_to_binary(np.flip(X, axis=0))
 
 def convert_from_binary(arr, _dtype = np.uint8):
     num_words = arr.shape[1]//8
@@ -180,11 +172,18 @@ def convert_to_binary(arr):
     X = X.transpose()
     return X
 
-def test():
-    key = np.uint8([0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99]).reshape(16,1)
-    pt = np.uint8([0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11]).reshape(8,1)
-    key = convert_to_binary(key)
-    pt = convert_to_binary(pt)
-    print(encrypt(pt, key, 10))
+def test_vector():
+    # https://datatracker.ietf.org/doc/html/draft-kisa-hight-00#section-5
+    #Key :           00 11 22 33 44 55 66 77 88 99 aa bb cc dd ee ff
+    #Plaintext :     00 00 00 00 00 00 00 00
+    #Ciphertext :    00 f4 18 ae d9 4f 03 f2
+    k = np.uint8([0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff]).reshape(16,1)
+    p = np.zeros(8, dtype = np.uint8).reshape(8,1)
+    assert (np.all(convert_from_binary(convert_to_binary(k)).flatten() == k.flatten()))
+    key = convert_to_binary(k)
+    pt = convert_to_binary(p)
+    c = encrypt(pt, key, 32)
+    assert(np.all( convert_from_binary(c).flatten() == [0x00, 0xf4, 0x18, 0xae, 0xd9, 0x4f, 0x03, 0xf2]))
 
-test()
+test_vector()
+
