@@ -9,7 +9,7 @@ from timeit import default_timer as timer
 import numpy as np
 import pandas as pd
 
-NUM_GENERATIONS = 5     # 50 in the paper, set to 5 here for demonstration
+NUM_GENERATIONS = 20     # 50 in the paper, set to 5 here for demonstration
 NUM_SAMPLES = 10**3      # 10**4 in the paper. The number of samples used to compute the bias score
 
 def bitArrayToIntegers(arr):
