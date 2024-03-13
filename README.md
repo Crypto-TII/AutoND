@@ -199,7 +199,7 @@ INFO:root:	 acc=0.5176 	 tpr=0.4774 	 tnr=0.5579
 ```
 
 ## Prerequisites
-The code execution relies on standard Python modules, except for `tensorflow`.
+The code execution relies on standard Python modules, except for `tensorflow version 2.15` (please note: at the moment, our code has incompatibilities with TensorFlow 2.16).
 If you start from an empty Python Anaconda environment, the following installation should be sufficient: 
 ```bash
 conda create -n tf-gpu tensorflow-gpu
