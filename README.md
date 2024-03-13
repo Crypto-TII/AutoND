@@ -206,5 +206,6 @@ conda create -n tf-gpu tensorflow-gpu
 conda activate tf-gpu
 conda install -c nvidia cuda-nvcc
 conda install pandas
+pip install ray
 ```
 On [GoogleColaboratory](https://colab.research.google.com/) the code will run out-of-the-box without any additional installations.
