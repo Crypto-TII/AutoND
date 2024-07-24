@@ -1,7 +1,7 @@
 # AutoND: A Cipher-Agnostic Neural Training Pipeline  with Automated Finding of Good Input Differences
 
 ## Note 
-In our manuscript we present results on SPECK32, SPECK64, SPECK128, SIMON32, SIMON64, SIMON128, GIMLI, HIGHT, LEA, TEA, XTEA, PRESENT and KATAN.
+In our manuscript (https://eprint.iacr.org/2022/1467.pdf, published at FSE 2024) we present results on SPECK32, SPECK64, SPECK128, SIMON32, SIMON64, SIMON128, GIMLI, HIGHT, LEA, TEA, XTEA, PRESENT and KATAN.
 The SPECK implementation is adapted from that of Gohr (https://github.com/agohr/deep_speck), and the contents of the train_nets.py from the same repo
 served as a base for gohrnet.py. 
 
