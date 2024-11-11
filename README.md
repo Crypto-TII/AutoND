@@ -198,6 +198,28 @@ INFO:root:	 acc=0.5176 	 tpr=0.4774 	 tnr=0.5579
 >>> 0.5182 +- 0.0004
 ```
 
+## Use AutoND as a Module
+
+```python
+from main import trainNeuralDistinguishers
+cipher_name = 'speck3264'
+scenario = 'single-key' 
+input_difference = 0x400000
+starting_round = 5 
+epochs = 40
+nets = ['dbitnet']
+output_dir = f'results_{cipher_name}_{hex(input_difference)}'
+
+trainNeuralDistinguishers(cipher_name, 
+						scenario, 
+						output_dir, 
+						input_difference, 
+						starting_round, 
+						epochs = epochs, 
+nets = nets)![image](https://github.com/user-attachments/assets/28ce7801-f38a-465f-92f2-b0cb4205492f)
+
+```
+
 ## Prerequisites
 The code execution relies on standard Python modules, except for `tensorflow version 2.15` (please note: at the moment, our code has incompatibilities with TensorFlow 2.16).
 If you start from an empty Python Anaconda environment, the following installation should be sufficient: 
