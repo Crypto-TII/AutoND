@@ -216,7 +216,7 @@ trainNeuralDistinguishers(cipher_name,
 						input_difference, 
 						starting_round, 
 						epochs = epochs, 
-nets = nets)![image](https://github.com/user-attachments/assets/28ce7801-f38a-465f-92f2-b0cb4205492f)
+nets = nets)
 
 ```
 
