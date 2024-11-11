@@ -211,13 +211,12 @@ nets = ['dbitnet']
 output_dir = f'results_{cipher_name}_{hex(input_difference)}'
 
 trainNeuralDistinguishers(cipher_name, 
-						scenario, 
-						output_dir, 
-						input_difference, 
-						starting_round, 
-						epochs = epochs, 
-nets = nets)
-
+				scenario, 
+				output_dir, 
+				input_difference, 
+				starting_round, 
+				epochs = epochs, 
+				nets = nets)
 ```
 
 ## Prerequisites
