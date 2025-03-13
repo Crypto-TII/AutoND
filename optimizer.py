@@ -154,18 +154,19 @@ def optimize(plain_bits, key_bits, encryption_function, nb_samples=NUM_SAMPLES, 
         else:
             allDiffs = np.concatenate([allDiffs, diffs])
         if scores[-1] < T:
+            highest_non_random_round = current_round-1
             break
         current_round += 1
 
     # Reevaluate all differences for best round:
-    finalScores = [None for i in range(current_round)]
+    finalScores = {i:None for i in range(1, current_round)}
     allDiffs = np.unique(allDiffs, axis=0)
     cumulativeScores = np.zeros(len(allDiffs))
     weightedScores = np.zeros(len(allDiffs))
     if log_file != None:
         with open(log_file, 'a') as f:
-            f.write(f'New log start, reached round {str(current_round-1)} \n')
-    for nr in range(1, current_round-1):
+            f.write(f'New log start, reached round {str(highest_non_random_round)} \n')
+    for nr in range(1, current_round):
         keys0 = (np.frombuffer(urandom(nb_samples*key_bits),dtype=np.uint8)&1).reshape(nb_samples, key_bits);
         pt0 = (np.frombuffer(urandom(nb_samples*plain_bits),dtype=np.uint8)&1).reshape(nb_samples, plain_bits);
         C0 = encryption_function(pt0, keys0, nr)
@@ -195,5 +196,5 @@ def optimize(plain_bits, key_bits, encryption_function, nb_samples=NUM_SAMPLES, 
     result, diffs_as_binary, diffs_as_hex = PrettyPrintBestEpsilonCloseDifferences(allDiffs, weightedScores, epsilon, scenario, plain_bits, key_bits)
     df = DataframeFromSortedDifferences(allDiffs, weightedScores, scenario, plain_bits, key_bits)
     df.to_csv(f'{log_file}_best_weighted_differences.csv')
-    return(diffs_as_hex, current_round-1)
+    return(diffs_as_hex, highest_non_random_round)
 
