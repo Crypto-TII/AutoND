@@ -142,6 +142,7 @@ def optimize(plain_bits, key_bits, encryption_function, nb_samples=NUM_SAMPLES, 
     else:
         bits_to_search = plain_bits+key_bits
     while True:
+        print("Evaluating differences at round ", current_round)
         keys0 = (np.frombuffer(urandom(nb_samples*key_bits),dtype=np.uint8)&1).reshape(nb_samples, key_bits);
         pt0 = (np.frombuffer(urandom(nb_samples*plain_bits),dtype=np.uint8)&1).reshape(nb_samples, plain_bits);
         C0 = encryption_function(pt0, keys0, current_round)
