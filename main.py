@@ -124,4 +124,4 @@ if __name__ == "__main__":
     print(f"PART 2: Training DBitNet using the simple training pipeline...")
     # Training the neural distinguisher, starting from two round before the last biased round detected by the optimizer
     for input_difference in best_differences:
-        results = trainNeuralDistinguishers(cipher_name, scenario, output_dir, input_difference, max(1, highest_round-2), nets =['dbitnet'])
+        results = trainNeuralDistinguishers(cipher_name, scenario, output_dir, input_difference, max(1, highest_round-1), nets =['dbitnet'])
